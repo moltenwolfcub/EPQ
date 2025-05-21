@@ -1,7 +1,6 @@
 package main
 
-// #cgo pkg-config: assimp
-// #cgo LDFLAGS: -static -lstdc++ -lz -lm -ldl
+// #cgo pkg-config: assimp zlib
 // #include <assimp/cimport.h>
 // #include <assimp/scene.h>
 // #include <assimp/postprocess.h>
@@ -10,8 +9,10 @@ import "fmt"
 
 func main() {
 
-	// scene := C.aiImportFile(C.CString("test.obj"), C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs))
+	scene := C.aiImportFile(C.CString("multiMesh.glb"), C.uint(C.aiProcess_CalcTangentSpace|
+		C.aiProcess_Triangulate|
+		C.aiProcess_JoinIdenticalVertices|
+		C.aiProcess_SortByPType))
 
-	// fmt.Println(C.aiImportFile(nil, C.uint(0)))
-	fmt.Println(uint(C.aiProcess_Triangulate))
+	fmt.Println(scene.mNumMeshes)
 }
