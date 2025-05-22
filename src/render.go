@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/gogl-utils"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -55,7 +56,17 @@ func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	shader.Use()
+
+	projMat := mgl32.Perspective(mgl32.DegToRad(85), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100)
+	viewMat := mgl32.Translate3D(-2, 0, -3)
+
+	shader.SetMatrix4("proj", projMat)
+	shader.SetMatrix4("view", viewMat)
+
 	gogl.BindVertexArray(vao)
+
+	modelMat := mgl32.Translate3D(0, 0, 0)
+	shader.SetMatrix4("model", modelMat)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 	r.window.GLSwap()
