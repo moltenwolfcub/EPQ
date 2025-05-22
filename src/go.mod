@@ -7,4 +7,7 @@ require (
 	github.com/veandco/go-sdl2 v0.4.40
 )
 
-require github.com/go-gl/mathgl v1.2.0 // indirect
+require (
+	github.com/go-gl/mathgl v1.2.0 // indirect
+	github.com/moltenwolfcub/gogl-utils v1.1.2
+)

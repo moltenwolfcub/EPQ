@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/moltenwolfcub/gogl-utils"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -49,15 +50,16 @@ func (r *Renderer) setupWindow() {
 	}
 }
 
-func (r *Renderer) Draw(shader uint32, vao uint32) {
+func (r *Renderer) Draw(shader gogl.Shader, vao uint32) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	gl.UseProgram(shader)
+	shader.Use()
 	gl.BindVertexArray(vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 	r.window.GLSwap()
+	shader.CheckShadersForChanges()
 }
 
 func (r *Renderer) Close() {
