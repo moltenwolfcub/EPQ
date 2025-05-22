@@ -19,18 +19,13 @@ func main() {
 		0.5, -0.5, 0.0,
 		0.0, 0.5, 0.0,
 	}
-	var VBO uint32
-	gl.GenBuffers(1, &VBO)
-	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
-	var VAO uint32
-	gl.GenVertexArrays(1, &VAO)
-	gl.BindVertexArray(VAO)
+	gogl.GenBindBuffer(gl.ARRAY_BUFFER) // VBO
+	VAO := gogl.GenBindVertexArray()
 
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+	gogl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil)
 	gl.EnableVertexAttribArray(0)
-
 	gl.BindVertexArray(0)
 
 	for {

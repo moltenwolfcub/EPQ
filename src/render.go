@@ -50,12 +50,12 @@ func (r *Renderer) setupWindow() {
 	}
 }
 
-func (r *Renderer) Draw(shader gogl.Shader, vao uint32) {
+func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	shader.Use()
-	gl.BindVertexArray(vao)
+	gogl.BindVertexArray(vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 	r.window.GLSwap()
