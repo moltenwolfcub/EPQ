@@ -26,7 +26,13 @@ func (r *Renderer) setupWindow() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
 
-	window, err := sdl.CreateWindow("EPQ project", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1600, 900, sdl.WINDOW_OPENGL|sdl.WINDOW_RESIZABLE)
+	window, err := sdl.CreateWindow(
+		WINDOW_TITLE,
+		sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+		WINDOW_WIDTH, WINDOW_HEIGHT,
+		sdl.WINDOW_OPENGL|sdl.WINDOW_RESIZABLE,
+	)
+
 	if err != nil {
 		panic(err)
 	}
@@ -41,6 +47,12 @@ func (r *Renderer) setupWindow() {
 		sdl.Quit()
 		window.Destroy()
 	}
+}
+
+func (r *Renderer) Draw() {
+	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	r.window.GLSwap()
 }
 
 func (r *Renderer) Close() {
