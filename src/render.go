@@ -10,6 +10,10 @@ import (
 type Renderer struct {
 	window     *sdl.Window
 	destructor func()
+
+	keyboardState []uint8
+
+	x, y, z float32
 }
 
 func NewRenderer() *Renderer {
@@ -49,6 +53,7 @@ func (r *Renderer) setupWindow() {
 		sdl.Quit()
 		window.Destroy()
 	}
+	r.keyboardState = sdl.GetKeyboardState()
 }
 
 func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
@@ -57,8 +62,29 @@ func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
 
 	shader.Use()
 
+	// VERY HACKY BASIC MOVEMENT FOR TESTING
+	// MUST BE REMOVED FOR THE FINAL IMPLEMENTATION
+	if r.keyboardState[sdl.SCANCODE_W] != 0 {
+		r.z += .1
+	}
+	if r.keyboardState[sdl.SCANCODE_S] != 0 {
+		r.z -= .1
+	}
+	if r.keyboardState[sdl.SCANCODE_A] != 0 {
+		r.x += .1
+	}
+	if r.keyboardState[sdl.SCANCODE_D] != 0 {
+		r.x -= .1
+	}
+	if r.keyboardState[sdl.SCANCODE_LSHIFT] != 0 {
+		r.y += .1
+	}
+	if r.keyboardState[sdl.SCANCODE_SPACE] != 0 {
+		r.y -= .1
+	}
+
 	projMat := mgl32.Perspective(mgl32.DegToRad(85), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100)
-	viewMat := mgl32.Translate3D(-2, 0, -3)
+	viewMat := mgl32.Translate3D(r.x, r.y, r.z)
 
 	shader.SetMatrix4("proj", projMat)
 	shader.SetMatrix4("view", viewMat)
