@@ -14,18 +14,8 @@ func main() {
 
 	shaderProgram := gogl.Shader(gogl.NewEmbeddedShader(assets.TriangleVert, assets.TriangleFrag))
 
-	vertices := []float32{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0,
-	}
-	gogl.GenBindBuffer(gl.ARRAY_BUFFER) // VBO
-	VAO := gogl.GenBindVertexArray()
+	pent := gogl.Pentahedron(1)
 
-	gogl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil)
-	gl.EnableVertexAttribArray(0)
 	gl.BindVertexArray(0)
 
 	for {
@@ -33,7 +23,7 @@ func main() {
 			return
 		}
 
-		r.Draw(shaderProgram, VAO)
+		r.Draw(shaderProgram, 0, pent)
 	}
 }
 

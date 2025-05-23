@@ -47,6 +47,7 @@ func (r *Renderer) setupWindow() {
 	gl.Init()
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Enable(gl.CULL_FACE)
+	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 
 	r.window = window
 	r.destructor = func() {
@@ -56,8 +57,8 @@ func (r *Renderer) setupWindow() {
 	r.keyboardState = sdl.GetKeyboardState()
 }
 
-func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
-	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
+func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID, pent gogl.Object) {
+	gl.ClearColor(0.0, 0.2, 0.3, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	shader.Use()
@@ -89,11 +90,8 @@ func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID) {
 	shader.SetMatrix4("proj", projMat)
 	shader.SetMatrix4("view", viewMat)
 
-	gogl.BindVertexArray(vao)
-
 	modelMat := mgl32.Translate3D(0, 0, 0)
-	shader.SetMatrix4("model", modelMat)
-	gl.DrawArrays(gl.TRIANGLES, 0, 3)
+	pent.Draw(shader, modelMat)
 
 	r.window.GLSwap()
 	shader.CheckShadersForChanges()
