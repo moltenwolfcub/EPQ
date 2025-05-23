@@ -14,11 +14,24 @@ type Renderer struct {
 	keyboardState []uint8
 
 	x, y, z float32
+
+	projMat mgl32.Mat4
+	viewMat mgl32.Mat4
 }
 
 func NewRenderer() *Renderer {
 	r := &Renderer{}
 	r.setupWindow()
+
+	r.x = -10
+	r.y = -10
+	r.z = -10
+
+	aspect := float32(WINDOW_WIDTH) / float32(WINDOW_HEIGHT)
+	r.projMat = mgl32.Ortho(-aspect*ORTHO_SCALE/2, aspect*ORTHO_SCALE/2, -ORTHO_SCALE/2, ORTHO_SCALE/2, 0.1, 100)
+	// r.projMat = mgl32.Perspective(mgl32.DegToRad(45), aspectRatio, 0.1, 100) // perspective version
+
+	r.viewMat = mgl32.HomogRotate3DX(mgl32.DegToRad(30)).Mul4(mgl32.HomogRotate3DY(mgl32.DegToRad(-45)))
 
 	return r
 }
@@ -84,11 +97,10 @@ func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID, pent gogl.Object)
 		r.y -= .1
 	}
 
-	projMat := mgl32.Perspective(mgl32.DegToRad(85), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100)
-	viewMat := mgl32.Translate3D(r.x, r.y, r.z)
+	translatedViewMat := r.viewMat.Mul4(mgl32.Translate3D(r.x, r.y, r.z))
 
-	shader.SetMatrix4("proj", projMat)
-	shader.SetMatrix4("view", viewMat)
+	shader.SetMatrix4("proj", r.projMat)
+	shader.SetMatrix4("view", translatedViewMat)
 
 	modelMat := mgl32.Translate3D(0, 0, 0)
 	pent.Draw(shader, modelMat)
