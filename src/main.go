@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/veandco/go-sdl2/sdl"
 
@@ -12,18 +13,27 @@ func main() {
 	r := NewRenderer()
 	defer r.Close()
 
+	keyboardState := sdl.GetKeyboardState()
+
 	shaderProgram := gogl.Shader(gogl.NewEmbeddedShader(assets.TriangleVert, assets.TriangleFrag))
-
 	pent := gogl.Pentahedron(1)
-
 	gl.BindVertexArray(0)
+
+	playerPos := mgl32.Vec3{}
 
 	for {
 		if handleEvents() != 0 {
 			return
 		}
 
-		r.Draw(shaderProgram, 0, pent)
+		translationVec := mgl32.Vec3{
+			float32(keyboardState[sdl.SCANCODE_A]) - float32(keyboardState[sdl.SCANCODE_D]),
+			float32(keyboardState[sdl.SCANCODE_LSHIFT]) - float32(keyboardState[sdl.SCANCODE_SPACE]),
+			float32(keyboardState[sdl.SCANCODE_W]) - float32(keyboardState[sdl.SCANCODE_S]),
+		}
+		playerPos = playerPos.Add(translationVec.Mul(MOVEMENT_SPEED))
+
+		r.Draw(shaderProgram, 0, pent, playerPos)
 	}
 }
 

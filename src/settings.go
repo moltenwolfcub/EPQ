@@ -6,4 +6,6 @@ const (
 	WINDOW_TITLE  = "EPQ project"
 
 	ORTHO_SCALE = 20 / 2 // divide by 2 because then it maps to blender's orthographic scale
+
+	MOVEMENT_SPEED = 0.1
 )
