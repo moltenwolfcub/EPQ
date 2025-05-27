@@ -15,8 +15,8 @@ func main() {
 
 	keyboardState := sdl.GetKeyboardState()
 
-	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.TriangleVert, assets.TriangleFrag))
-	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.Shader2Vert, assets.Shader2Frag))
+	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
 	state := WorldState{
 		NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
