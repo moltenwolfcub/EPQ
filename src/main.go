@@ -21,6 +21,8 @@ func main() {
 	state := WorldState{
 		NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
+		NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
+		NewWorldObject(gogl.Pentahedron(2), orangeShader, mgl32.Vec3{0, 0, -6}),
 	}
 
 	gl.BindVertexArray(0)
