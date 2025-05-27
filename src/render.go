@@ -63,22 +63,32 @@ func (r *Renderer) alignCamera(focus mgl32.Vec3) {
 	r.camera.Pos = newPos
 }
 
-func (r *Renderer) Draw(shader gogl.Shader, vao gogl.BufferID, pent gogl.Object, playerPos mgl32.Vec3) {
+func (r *Renderer) Draw(playerPos mgl32.Vec3, shader1 gogl.Shader, pent gogl.Object, shader2 gogl.Shader, cube gogl.Object) {
 	gl.ClearColor(0.0, 0.2, 0.3, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	shader.Use()
-
 	r.alignCamera(playerPos)
 	proj, view := r.camera.GetMatricies()
-	shader.SetMatrix4("proj", proj)
-	shader.SetMatrix4("view", view)
+
+	shader1.Use()
+
+	shader1.SetMatrix4("proj", proj)
+	shader1.SetMatrix4("view", view)
 
 	modelMat := mgl32.Translate3D(0, 0, 0)
-	pent.Draw(shader, modelMat)
+	pent.Draw(shader1, modelMat)
+
+	shader2.Use()
+
+	shader1.SetMatrix4("proj", proj)
+	shader1.SetMatrix4("view", view)
+
+	modelMat = mgl32.Translate3D(5, 0, 0)
+	cube.Draw(shader2, modelMat)
 
 	r.window.GLSwap()
-	shader.CheckShadersForChanges()
+	shader1.CheckShadersForChanges()
+	shader2.CheckShadersForChanges()
 }
 
 func (r *Renderer) Close() {

@@ -20,4 +20,7 @@ func MustLoadShader(file string) string {
 var (
 	TriangleVert string = MustLoadShader("triangle.vert")
 	TriangleFrag string = MustLoadShader("triangle.frag")
+
+	Shader2Vert string = MustLoadShader("shader2.vert")
+	Shader2Frag string = MustLoadShader("shader2.frag")
 )
