@@ -15,10 +15,14 @@ func main() {
 
 	keyboardState := sdl.GetKeyboardState()
 
-	shaderProgram := gogl.Shader(gogl.NewEmbeddedShader(assets.TriangleVert, assets.TriangleFrag))
-	shader2 := gogl.Shader(gogl.NewEmbeddedShader(assets.Shader2Vert, assets.Shader2Frag))
-	pent := gogl.Pentahedron(1)
-	cube := gogl.Cube(2)
+	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.TriangleVert, assets.TriangleFrag))
+	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.Shader2Vert, assets.Shader2Frag))
+
+	state := WorldState{
+		NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
+	}
+
 	gl.BindVertexArray(0)
 
 	playerPos := mgl32.Vec3{}
@@ -35,7 +39,7 @@ func main() {
 		}
 		playerPos = playerPos.Add(translationVec.Mul(MOVEMENT_SPEED))
 
-		r.Draw(playerPos, shaderProgram, pent, shader2, cube)
+		r.Draw(playerPos, state)
 	}
 }
 
