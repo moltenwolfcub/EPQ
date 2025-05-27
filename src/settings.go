@@ -1,11 +1,11 @@
 package main
 
 const (
-	WINDOW_WIDTH  = 1600
-	WINDOW_HEIGHT = 900
-	WINDOW_TITLE  = "EPQ project"
+	WINDOW_WIDTH  int32  = 1600
+	WINDOW_HEIGHT int32  = 900
+	WINDOW_TITLE  string = "EPQ project"
 
-	ORTHO_SCALE = 20 / 2 // divide by 2 because then it maps to blender's orthographic scale
+	ORTHO_SCALE float32 = 20 / 2 // divide by 2 because then it maps to blender's orthographic scale
 
-	MOVEMENT_SPEED = 0.1
+	MOVEMENT_SPEED float32 = 0.1
 )
