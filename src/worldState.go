@@ -11,14 +11,14 @@ type WorldState []*WorldObject
 type WorldObject struct {
 	renderObj gogl.Object
 	shader    gogl.Shader
-	pos       mgl32.Vec3
+	modelMat  mgl32.Mat4
 }
 
 func NewWorldObject(obj gogl.Object, shader gogl.Shader, pos mgl32.Vec3) *WorldObject {
 	return &WorldObject{
 		renderObj: obj,
 		shader:    shader,
-		pos:       pos,
+		modelMat:  mgl32.Translate3D(pos.Elem()),
 	}
 }
 
@@ -29,7 +29,5 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4) {
 	o.shader.SetMatrix4("proj", proj)
 	o.shader.SetMatrix4("view", view)
 
-	modelMat := mgl32.Translate3D(o.pos.Elem())
-
-	o.renderObj.Draw(o.shader, modelMat)
+	o.renderObj.Draw(o.shader, o.modelMat)
 }
