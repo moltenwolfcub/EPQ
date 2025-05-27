@@ -70,15 +70,7 @@ func (r *Renderer) Draw(playerPos mgl32.Vec3, world WorldState) {
 	proj, view := r.camera.GetMatricies()
 
 	for _, obj := range world {
-		obj.Shader.CheckShadersForChanges()
-		obj.Shader.Use()
-
-		obj.Shader.SetMatrix4("proj", proj)
-		obj.Shader.SetMatrix4("view", view)
-
-		modelMat := mgl32.Translate3D(obj.Pos.Elem())
-
-		obj.RenderObj.Draw(obj.Shader, modelMat)
+		obj.Draw(proj, view)
 	}
 
 	r.window.GLSwap()
