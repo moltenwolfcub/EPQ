@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/assets"
+	"github.com/moltenwolfcub/gogl-utils"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -11,6 +13,9 @@ type Renderer struct {
 	destructor func()
 
 	camera *Camera
+
+	testModel  Model
+	testShader gogl.Shader
 }
 
 func NewRenderer() *Renderer {
@@ -54,6 +59,9 @@ func (r *Renderer) setupWindow() {
 		sdl.Quit()
 		window.Destroy()
 	}
+
+	r.testModel = NewModel("backpack/backpack.obj")
+	r.testShader = gogl.Shader(gogl.NewEmbeddedShader(assets.BackpackVert, assets.BackpackFrag))
 }
 
 // TODO: needs a lot of changing for when a player is implemented and a worldstate is made
@@ -72,6 +80,12 @@ func (r *Renderer) Draw(playerPos mgl32.Vec3, world WorldState) {
 	for _, obj := range world {
 		obj.Draw(proj, view)
 	}
+
+	r.testShader.Use()
+	r.testShader.SetMatrix4("proj", proj)
+	r.testShader.SetMatrix4("view", view)
+	r.testShader.SetMatrix4("model", mgl32.Translate3D(0, 10, 0))
+	r.testModel.Draw(r.testShader)
 
 	r.window.GLSwap()
 }

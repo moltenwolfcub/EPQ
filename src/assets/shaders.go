@@ -23,4 +23,7 @@ var (
 
 	BlueVert string = MustLoadShader("blue.vert")
 	BlueFrag string = MustLoadShader("blue.frag")
+
+	BackpackVert string = MustLoadShader("backpack.vert")
+	BackpackFrag string = MustLoadShader("backpack.frag")
 )

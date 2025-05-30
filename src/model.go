@@ -265,7 +265,7 @@ func (m Mesh) Draw(shader gogl.Shader) {
 	gl.ActiveTexture(gl.TEXTURE0)
 
 	gl.BindVertexArray(m.vao)
-	gl.DrawElements(gl.TRIANGLES, int32(len(m.Indices)), gl.UNSIGNED_INT, gl.Ptr(0))
+	gl.DrawElements(gl.TRIANGLES, int32(len(m.Indices)), gl.UNSIGNED_INT, gl.Ptr(uintptr(0)))
 	gl.BindVertexArray(0)
 }
 
