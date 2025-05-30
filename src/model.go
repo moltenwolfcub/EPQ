@@ -21,8 +21,9 @@ import (
 )
 
 type Model struct {
-	meshes    []Mesh
-	directory string
+	Meshes         []Mesh
+	Directory      string
+	TexturesLoaded []Texture
 }
 
 func NewModel(path string) Model {
@@ -34,7 +35,7 @@ func NewModel(path string) Model {
 }
 
 func (m Model) Draw(shader gogl.Shader) {
-	for _, mesh := range m.meshes {
+	for _, mesh := range m.Meshes {
 		mesh.Draw(shader)
 	}
 }
@@ -56,9 +57,9 @@ func (m *Model) loadModel(path string) {
 
 	dirIndex := strings.LastIndex(path, "/")
 	if dirIndex != -1 {
-		m.directory = path[:dirIndex]
+		m.Directory = path[:dirIndex]
 	} else {
-		m.directory = path
+		m.Directory = path
 	}
 
 	m.processNode(scene.mRootNode, scene)
@@ -74,7 +75,7 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 		mesh := sceneMeshes[nodeMeshes[i]]
 		processedMesh := m.processMesh(mesh, scene)
 
-		m.meshes = append(m.meshes, processedMesh)
+		m.Meshes = append(m.Meshes, processedMesh)
 	}
 
 	nodeChildren := unsafe.Slice((**C.struct_aiNode)(unsafe.Pointer(node.mChildren)), node.mNumChildren)
@@ -150,15 +151,25 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 	for i := range C.aiGetMaterialTextureCount(mat, texture_type) {
 		var cstr C.struct_aiString
 		C.aiGetMaterialTexture(mat, texture_type, i, &cstr, nil, nil, nil, nil, nil, nil)
-
 		path := C.GoString(&cstr.data[0])
 
-		var texture Texture
-		texture.Id = TextureFromFile(path, m.directory)
-		texture.TextureType = typeName
-		texture.Path = path
+		skip := false
+		for j := range len(m.TexturesLoaded) {
+			if m.TexturesLoaded[j].Path == path {
+				textures = append(textures, m.TexturesLoaded[j])
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			var texture Texture
+			texture.Id = TextureFromFile(path, m.Directory)
+			texture.TextureType = typeName
+			texture.Path = path
 
-		textures = append(textures, texture)
+			textures = append(textures, texture)
+			m.TexturesLoaded = append(m.TexturesLoaded, texture)
+		}
 	}
 	return textures
 }
