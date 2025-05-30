@@ -10,7 +10,6 @@ import "C"
 import (
 	"fmt"
 	"image"
-	"image/draw"
 	"strings"
 	"unsafe"
 
@@ -178,14 +177,7 @@ func TextureFromFile(path, directory string) uint32 {
 	loc := fmt.Sprintf("%s/%s", directory, path)
 	img := assets.MustLoadImage(loc)
 
-	var convertedImg *image.NRGBA
-	switch src := img.(type) {
-	case *image.NRGBA:
-		convertedImg = src
-	default:
-		convertedImg = image.NewNRGBA(img.Bounds())
-		draw.Draw(convertedImg, img.Bounds(), img, image.Point{}, draw.Src)
-	}
+	convertedImg := flipVertical(img)
 
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
@@ -211,6 +203,20 @@ func TextureFromFile(path, directory string) uint32 {
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 
 	return textureID
+}
+
+func flipVertical(img image.Image) *image.NRGBA {
+	bounds := img.Bounds()
+	flipped := image.NewNRGBA(bounds)
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	for y := range height {
+		for x := range width {
+			flipped.Set(x, height-1-y, img.At(x, y))
+		}
+	}
+	return flipped
 }
 
 type Vertex struct {
