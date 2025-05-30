@@ -1,13 +1,158 @@
 package main
 
+// #cgo pkg-config: assimp zlib
+// #include <assimp/cimport.h>
+// #include <assimp/scene.h>
+// #include <assimp/postprocess.h>
+import "C"
+
 import (
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/gogl-utils"
 )
+
+type Model struct {
+	meshes    []Mesh
+	directory string
+}
+
+func NewModel(path string) Model {
+	m := Model{}
+
+	m.loadModel(path)
+
+	return m
+}
+
+func (m Model) Draw(shader gogl.Shader) {
+	for _, mesh := range m.meshes {
+		mesh.Draw(shader)
+	}
+}
+
+func (m *Model) loadModel(path string) {
+	scene := C.aiImportFile(
+		C.CString(path),
+		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
+	)
+	defer C.aiReleaseImport(scene)
+
+	if scene == nil || (scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene.mRootNode == nil {
+		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
+		return
+	}
+
+	dirIndex := strings.LastIndex(path, "/")
+	if dirIndex != -1 {
+		m.directory = path[:dirIndex]
+	} else {
+		m.directory = path
+	}
+
+	m.processNode(scene.mRootNode, scene)
+}
+
+func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
+	nodeMeshes := unsafe.Slice((*C.uint)(unsafe.Pointer(node.mMeshes)), node.mNumMeshes)
+	sceneMeshes := unsafe.Slice((**C.struct_aiMesh)(unsafe.Pointer(scene.mMeshes)), scene.mNumMeshes)
+	// meshIndex := *(*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(node.mMeshes)) + uintptr(i)*unsafe.Sizeof(*node.mMeshes)))
+	// mesh := (*C.struct_aiMesh)(unsafe.Pointer(uintptr(unsafe.Pointer(scene.mMeshes)) + uintptr(meshIndex)*unsafe.Sizeof(*scene.mMeshes)))
+
+	for i := range int(node.mNumMeshes) {
+		mesh := sceneMeshes[nodeMeshes[i]]
+		processedMesh := m.processMesh(mesh, scene)
+
+		m.meshes = append(m.meshes, processedMesh)
+	}
+
+	nodeChildren := unsafe.Slice((**C.struct_aiNode)(unsafe.Pointer(node.mChildren)), node.mNumChildren)
+
+	for i := range int(node.mNumChildren) {
+		m.processNode(nodeChildren[i], scene)
+	}
+}
+
+func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh {
+	var verticies []Vertex
+	var indices []uint32
+	var textures []Texture
+
+	// verticies
+	meshVerticies := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mVertices)), mesh.mNumVertices)
+	meshNormals := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mNormals)), mesh.mNumVertices)
+	for i := range int(mesh.mNumVertices) {
+		var vertex Vertex
+
+		vertex.Position = mgl32.Vec3{
+			float32(meshVerticies[i].x),
+			float32(meshVerticies[i].y),
+			float32(meshVerticies[i].z),
+		}
+
+		vertex.Normal = mgl32.Vec3{
+			float32(meshNormals[i].x),
+			float32(meshNormals[i].y),
+			float32(meshNormals[i].z),
+		}
+
+		if mesh.mTextureCoords[0] != nil {
+			meshTextureCoords := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mTextureCoords[0])), mesh.mNumVertices)
+
+			vertex.TexCoords = mgl32.Vec2{
+				float32(meshTextureCoords[i].x),
+				float32(meshTextureCoords[i].y),
+			}
+
+		} else {
+			vertex.TexCoords = mgl32.Vec2{0, 0}
+		}
+
+		verticies = append(verticies, vertex)
+	}
+	//indicies
+	meshFaces := unsafe.Slice((*C.struct_aiFace)(unsafe.Pointer(mesh.mFaces)), mesh.mNumFaces)
+	for i := range int(mesh.mNumFaces) {
+		face := meshFaces[i]
+
+		faceIndicies := unsafe.Slice((*C.uint)(unsafe.Pointer(face.mIndices)), face.mNumIndices)
+		for j := range int(face.mNumIndices) {
+			indices = append(indices, uint32(faceIndicies[j]))
+		}
+	}
+
+	//material
+	sceneMaterials := unsafe.Slice((**C.struct_aiMaterial)(unsafe.Pointer(scene.mMaterials)), scene.mNumMaterials)
+	material := sceneMaterials[mesh.mMaterialIndex]
+
+	diffuseMaps := m.loadMaterialTextures(material, C.aiTextureType_DIFFUSE, "texture_diffuse")
+	textures = append(textures, diffuseMaps...)
+
+	specularMaps := m.loadMaterialTextures(material, C.aiTextureType_SPECULAR, "texture_specular")
+	textures = append(textures, specularMaps...)
+
+	return NewMesh(verticies, indices, textures)
+}
+
+func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
+	var textures []Texture
+	for i := range C.aiGetMaterialTextureCount(mat, texture_type) {
+		var cstr C.struct_aiString
+		C.aiGetMaterialTexture(mat, texture_type, i, &cstr, nil, nil, nil, nil, nil, nil)
+
+		texture := Texture{}
+		texture.Id = 0 //TODO: actually import this
+		texture.TextureType = typeName
+		texture.Path = cstr
+
+		textures = append(textures, texture)
+	}
+	return textures
+}
 
 type Vertex struct {
 	Position  mgl32.Vec3
@@ -18,6 +163,7 @@ type Vertex struct {
 type Texture struct {
 	Id          uint32
 	TextureType string
+	Path        C.struct_aiString //TODO: might need to change
 }
 
 type Mesh struct {
