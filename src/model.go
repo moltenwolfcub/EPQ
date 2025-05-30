@@ -22,7 +22,7 @@ import (
 type Model struct {
 	Meshes         []Mesh
 	Directory      string
-	TexturesLoaded []Texture
+	texturesLoaded []Texture
 }
 
 func NewModel(path string) Model {
@@ -153,9 +153,9 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 		path := C.GoString(&cstr.data[0])
 
 		skip := false
-		for j := range len(m.TexturesLoaded) {
-			if m.TexturesLoaded[j].Path == path {
-				textures = append(textures, m.TexturesLoaded[j])
+		for j := range len(m.texturesLoaded) {
+			if m.texturesLoaded[j].Path == path {
+				textures = append(textures, m.texturesLoaded[j])
 				skip = true
 				break
 			}
@@ -167,7 +167,7 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 			texture.Path = path
 
 			textures = append(textures, texture)
-			m.TexturesLoaded = append(m.TexturesLoaded, texture)
+			m.texturesLoaded = append(m.texturesLoaded, texture)
 		}
 	}
 	return textures
