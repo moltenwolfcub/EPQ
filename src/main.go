@@ -13,6 +13,9 @@ func main() {
 	r := NewRenderer()
 	defer r.Close()
 
+	NewModel("backpack/backpack.obj")
+	return
+
 	keyboardState := sdl.GetKeyboardState()
 
 	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))

@@ -4,15 +4,19 @@ package main
 // #include <assimp/cimport.h>
 // #include <assimp/scene.h>
 // #include <assimp/postprocess.h>
+// #include <stdlib.h>
 import "C"
 
 import (
 	"fmt"
+	"image"
+	"image/draw"
 	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/gogl-utils"
 )
 
@@ -36,8 +40,11 @@ func (m Model) Draw(shader gogl.Shader) {
 }
 
 func (m *Model) loadModel(path string) {
+	cpath := C.CString("assets/models/" + path)
+	defer C.free(unsafe.Pointer(cpath))
+
 	scene := C.aiImportFile(
-		C.CString(path),
+		cpath,
 		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
 	)
 	defer C.aiReleaseImport(scene)
@@ -144,14 +151,55 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 		var cstr C.struct_aiString
 		C.aiGetMaterialTexture(mat, texture_type, i, &cstr, nil, nil, nil, nil, nil, nil)
 
-		texture := Texture{}
-		texture.Id = 0 //TODO: actually import this
+		path := C.GoString(&cstr.data[0])
+
+		var texture Texture
+		texture.Id = TextureFromFile(path, m.directory)
 		texture.TextureType = typeName
-		texture.Path = cstr
+		texture.Path = path
 
 		textures = append(textures, texture)
 	}
 	return textures
+}
+
+func TextureFromFile(path, directory string) uint32 {
+	loc := fmt.Sprintf("%s/%s", directory, path)
+	img := assets.MustLoadImage(loc)
+
+	var convertedImg *image.NRGBA
+	switch src := img.(type) {
+	case *image.NRGBA:
+		convertedImg = src
+	default:
+		convertedImg = image.NewNRGBA(img.Bounds())
+		draw.Draw(convertedImg, img.Bounds(), img, image.Point{}, draw.Src)
+	}
+
+	var textureID uint32
+	gl.GenTextures(1, &textureID)
+	gl.BindTexture(gl.TEXTURE_2D, textureID)
+	gl.TexImage2D(
+		gl.TEXTURE_2D,
+		0,
+		gl.RGBA,
+		int32(convertedImg.Bounds().Dx()),
+		int32(convertedImg.Bounds().Dy()),
+		0,
+		gl.RGBA,
+		gl.UNSIGNED_BYTE,
+		gl.Ptr(convertedImg.Pix),
+	)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
+
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
+	return textureID
 }
 
 type Vertex struct {
@@ -163,7 +211,7 @@ type Vertex struct {
 type Texture struct {
 	Id          uint32
 	TextureType string
-	Path        C.struct_aiString //TODO: might need to change
+	Path        string
 }
 
 type Mesh struct {
@@ -225,7 +273,7 @@ func (m *Mesh) setupMesh() {
 
 	// pos
 	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(0))
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(uintptr(0)))
 	// normal
 	gl.EnableVertexAttribArray(1)
 	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Normal)))
