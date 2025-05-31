@@ -70,13 +70,32 @@ static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, 
 {
 	int size = 0;
 	char *data = GetRawModel((char *)filename, &size);
+	if (!data)
+	{
+		printf("ERROR::C::Didn't properly recieve model from go\n");
+		return NULL;
+	}
 
 	EmbeddedData *embed = (EmbeddedData *)malloc(sizeof(EmbeddedData));
+	if (!embed)
+	{
+		printf("ERROR::C::Couldn't malloc for EmbeddedData\n");
+		free(data);
+		return NULL;
+	}
+
 	embed->data = data;
 	embed->size = size;
 	embed->offset = 0;
 
 	C_STRUCT aiFile *file = (C_STRUCT aiFile *)malloc(sizeof(C_STRUCT aiFile));
+	if (!file)
+	{
+		printf("ERROR::C::Couldn't malloc for aiFile\n");
+		free(embed->data);
+		free(embed);
+		return NULL;
+	}
 	file->ReadProc = MyReadProc;
 	file->WriteProc = MyWriteProc;
 	file->SeekProc = MySeekProc;
@@ -91,7 +110,8 @@ static void MyCloseProc(C_STRUCT aiFileIO *io, C_STRUCT aiFile *file)
 	EmbeddedData *embed = (EmbeddedData *)file->UserData;
 	if (embed)
 	{
-		free(embed->data);
+		if (embed->data)
+			free(embed->data);
 		free(embed);
 	}
 
@@ -101,6 +121,8 @@ static void MyCloseProc(C_STRUCT aiFileIO *io, C_STRUCT aiFile *file)
 C_STRUCT aiFileIO *CreateMemoryFileIO()
 {
 	C_STRUCT aiFileIO *io = (C_STRUCT aiFileIO *)malloc(sizeof(C_STRUCT aiFileIO));
+	if (!io)
+		return NULL;
 	io->OpenProc = MyOpenProc;
 	io->CloseProc = MyCloseProc;
 	io->UserData = NULL;
