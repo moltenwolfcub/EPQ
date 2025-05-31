@@ -60,7 +60,7 @@ static C_ENUM aiReturn MySeekProc(C_STRUCT aiFile *f, size_t offset, C_ENUM aiOr
 	}
 
 	embed->offset = new_offset;
-	return aiReturn_FAILURE;
+	return aiReturn_SUCCESS;
 }
 static void MyFlushProc(C_STRUCT aiFile *) { printf("FLUSH UNIMPLEMENTED\n"); }
 static size_t MyWriteProc(C_STRUCT aiFile *, const char *, size_t, size_t) { return printf("WRITE UNIMPLEMENTED\n") * 0; }
