@@ -1,0 +1,1 @@
+int getNumber(int in);

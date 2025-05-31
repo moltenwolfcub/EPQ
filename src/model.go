@@ -5,6 +5,7 @@ package main
 // #include <assimp/scene.h>
 // #include <assimp/postprocess.h>
 // #include <stdlib.h>
+// #include <model.h>
 import "C"
 
 import (
@@ -26,6 +27,8 @@ type Model struct {
 }
 
 func NewModel(path string) Model {
+	fmt.Println(C.getNumber(5))
+
 	m := Model{}
 
 	m.loadModel(path)
