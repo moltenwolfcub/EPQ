@@ -4,7 +4,7 @@ int getSchoolYear(int age)
 {
 	if (age < 5)
 	{
-		return 0;
+		return 100;
 	}
 	else
 	{

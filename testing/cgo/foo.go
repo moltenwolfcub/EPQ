@@ -1,12 +1,12 @@
 package main
 
-// #cgo CFLAGS: -Ipwd
-// #cgo LDFLAGS: foo.a
+// #cgo CFLAGS: -I${SRCDIR}
+// #cgo LDFLAGS: -L${SRCDIR}/foo.c
 // #include <foo.h>
 import "C"
 
 func main() {
-	age := 16
+	age := 3
 	year := int(C.getSchoolYear(C.int(age)))
 	println("School year:", year)
 }
