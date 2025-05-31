@@ -8,4 +8,7 @@ var (
 
 	//go:embed textures
 	textures embed.FS
+
+	//go:embed models
+	models embed.FS
 )
