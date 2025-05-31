@@ -65,10 +65,8 @@ func (m *Model) loadModel(path string) {
 }
 
 func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
-	nodeMeshes := unsafe.Slice((*C.uint)(unsafe.Pointer(node.mMeshes)), node.mNumMeshes)
-	sceneMeshes := unsafe.Slice((**C.struct_aiMesh)(unsafe.Pointer(scene.mMeshes)), scene.mNumMeshes)
-	// meshIndex := *(*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(node.mMeshes)) + uintptr(i)*unsafe.Sizeof(*node.mMeshes)))
-	// mesh := (*C.struct_aiMesh)(unsafe.Pointer(uintptr(unsafe.Pointer(scene.mMeshes)) + uintptr(meshIndex)*unsafe.Sizeof(*scene.mMeshes)))
+	nodeMeshes := unsafe.Slice(node.mMeshes, node.mNumMeshes)
+	sceneMeshes := unsafe.Slice(scene.mMeshes, scene.mNumMeshes)
 
 	for i := range int(node.mNumMeshes) {
 		mesh := sceneMeshes[nodeMeshes[i]]
@@ -77,7 +75,7 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 		m.Meshes = append(m.Meshes, processedMesh)
 	}
 
-	nodeChildren := unsafe.Slice((**C.struct_aiNode)(unsafe.Pointer(node.mChildren)), node.mNumChildren)
+	nodeChildren := unsafe.Slice(node.mChildren, node.mNumChildren)
 
 	for i := range int(node.mNumChildren) {
 		m.processNode(nodeChildren[i], scene)
@@ -90,8 +88,8 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	var textures []Texture
 
 	// verticies
-	meshVerticies := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mVertices)), mesh.mNumVertices)
-	meshNormals := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mNormals)), mesh.mNumVertices)
+	meshVerticies := unsafe.Slice(mesh.mVertices, mesh.mNumVertices)
+	meshNormals := unsafe.Slice(mesh.mNormals, mesh.mNumVertices)
 	for i := range int(mesh.mNumVertices) {
 		var vertex Vertex
 
@@ -108,7 +106,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 		}
 
 		if mesh.mTextureCoords[0] != nil {
-			meshTextureCoords := unsafe.Slice((*C.struct_aiVector3D)(unsafe.Pointer(mesh.mTextureCoords[0])), mesh.mNumVertices)
+			meshTextureCoords := unsafe.Slice(mesh.mTextureCoords[0], mesh.mNumVertices)
 
 			vertex.TexCoords = mgl32.Vec2{
 				float32(meshTextureCoords[i].x),
@@ -122,18 +120,18 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 		verticies = append(verticies, vertex)
 	}
 	//indicies
-	meshFaces := unsafe.Slice((*C.struct_aiFace)(unsafe.Pointer(mesh.mFaces)), mesh.mNumFaces)
+	meshFaces := unsafe.Slice(mesh.mFaces, mesh.mNumFaces)
 	for i := range int(mesh.mNumFaces) {
 		face := meshFaces[i]
 
-		faceIndicies := unsafe.Slice((*C.uint)(unsafe.Pointer(face.mIndices)), face.mNumIndices)
+		faceIndicies := unsafe.Slice(face.mIndices, face.mNumIndices)
 		for j := range int(face.mNumIndices) {
 			indices = append(indices, uint32(faceIndicies[j]))
 		}
 	}
 
 	//material
-	sceneMaterials := unsafe.Slice((**C.struct_aiMaterial)(unsafe.Pointer(scene.mMaterials)), scene.mNumMaterials)
+	sceneMaterials := unsafe.Slice(scene.mMaterials, scene.mNumMaterials)
 	material := sceneMaterials[mesh.mMaterialIndex]
 
 	diffuseMaps := m.loadMaterialTextures(material, C.aiTextureType_DIFFUSE, "texture_diffuse")
