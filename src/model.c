@@ -7,48 +7,89 @@ typedef struct
 {
 	char *data;
 	int size;
+	int offset;
 } EmbeddedData;
 
-static size_t MyReadProc(C_STRUCT aiFile *, char *, size_t, size_t)
+static size_t MyReadProc(C_STRUCT aiFile *f, char *buffer, size_t size, size_t count)
 {
 	printf("READ\n");
-	fflush(stdout);
-	return 0;
+	printf("\treading: size=%d, count=%d\n", size, count);
+
+	EmbeddedData *embed = (EmbeddedData *)f->UserData;
+	if (!embed || !buffer || size == 0 || count == 0)
+		return 0;
+
+	size_t bytes_left = embed->size - embed->offset;
+	size_t bytes_requested = size * count;
+	size_t bytes_to_read = bytes_requested < bytes_left ? bytes_requested : bytes_left;
+
+	memcpy(buffer, embed->data + embed->offset, bytes_to_read);
+	embed->offset += bytes_to_read;
+
+	return bytes_to_read / size;
 }
-static size_t MyWriteProc(C_STRUCT aiFile *, const char *, size_t, size_t)
+static size_t MyWriteProc(C_STRUCT aiFile *f, const char *, size_t, size_t)
 {
 	printf("WRITE\n");
-	fflush(stdout);
 	return 0;
 }
-static size_t MyTellProc(C_STRUCT aiFile *)
+static size_t MyTellProc(C_STRUCT aiFile *f)
 {
 	printf("TELL\n");
-	fflush(stdout);
 	return 0;
 }
-static size_t MyFileSizeProc(C_STRUCT aiFile *)
+static size_t MyFileSizeProc(C_STRUCT aiFile *f)
 {
 	printf("FILE_SIZE\n");
-	fflush(stdout);
-	return 0;
+
+	EmbeddedData *embed = (EmbeddedData *)f->UserData;
+	if (!embed)
+		return 0;
+	printf("\tfile-size: %d\n", embed->size);
+	return embed->size;
 }
-static C_ENUM aiReturn MySeekProc(C_STRUCT aiFile *, size_t, C_ENUM aiOrigin)
+static C_ENUM aiReturn MySeekProc(C_STRUCT aiFile *f, size_t offset, C_ENUM aiOrigin origin)
 {
 	printf("SEEK\n");
-	fflush(stdout);
+	printf("\tsought: offset=%zu, origin=%d\n", offset, origin);
+
+	EmbeddedData *embed = (EmbeddedData *)f->UserData;
+	if (!embed)
+		return aiReturn_FAILURE;
+
+	int new_offset = 0;
+	switch (origin)
+	{
+	case aiOrigin_SET:
+		new_offset = offset;
+		break;
+	case aiOrigin_CUR:
+		new_offset = embed->offset + offset;
+		break;
+	case aiOrigin_END:
+		new_offset = embed->size + offset;
+		break;
+	default:
+		return aiReturn_FAILURE;
+	}
+
+	if (new_offset < 0 || new_offset > embed->size)
+	{
+		return aiReturn_FAILURE;
+	}
+
+	embed->offset = new_offset;
 	return aiReturn_FAILURE;
 }
-static void MyFlushProc(C_STRUCT aiFile *)
+static void MyFlushProc(C_STRUCT aiFile *f)
 {
 	printf("FLUSH\n");
-	fflush(stdout);
 }
 
 static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, const char *mode)
 {
 	printf("OPEN\n");
-	fflush(stdout);
+	printf("\topened: %s in %s\n", filename, mode);
 
 	int size = 0;
 	char *data = GetRawModel((char *)filename, &size);
@@ -56,6 +97,7 @@ static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, 
 	EmbeddedData *embed = (EmbeddedData *)malloc(sizeof(EmbeddedData));
 	embed->data = data;
 	embed->size = size;
+	embed->offset = 0;
 
 	C_STRUCT aiFile *file = (C_STRUCT aiFile *)malloc(sizeof(C_STRUCT aiFile));
 	file->ReadProc = MyReadProc;
@@ -71,7 +113,6 @@ static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, 
 static void MyCloseProc(C_STRUCT aiFileIO *io, C_STRUCT aiFile *file)
 {
 	printf("CLOSE\n");
-	fflush(stdout);
 
 	EmbeddedData *embed = (EmbeddedData *)file->UserData;
 	if (embed)
@@ -86,7 +127,6 @@ static void MyCloseProc(C_STRUCT aiFileIO *io, C_STRUCT aiFile *file)
 C_STRUCT aiFileIO *CreateMemoryFileIO()
 {
 	printf("CREATE\n");
-	fflush(stdout);
 
 	C_STRUCT aiFileIO *io = (C_STRUCT aiFileIO *)malloc(sizeof(C_STRUCT aiFileIO));
 	io->OpenProc = MyOpenProc;
