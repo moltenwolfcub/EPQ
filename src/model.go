@@ -68,8 +68,8 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 	nodeMeshes := unsafe.Slice(node.mMeshes, node.mNumMeshes)
 	sceneMeshes := unsafe.Slice(scene.mMeshes, scene.mNumMeshes)
 
-	for i := range int(node.mNumMeshes) {
-		mesh := sceneMeshes[nodeMeshes[i]]
+	for _, nodeMesh := range nodeMeshes {
+		mesh := sceneMeshes[nodeMesh]
 		processedMesh := m.processMesh(mesh, scene)
 
 		m.Meshes = append(m.Meshes, processedMesh)
@@ -77,8 +77,8 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 
 	nodeChildren := unsafe.Slice(node.mChildren, node.mNumChildren)
 
-	for i := range int(node.mNumChildren) {
-		m.processNode(nodeChildren[i], scene)
+	for _, child := range nodeChildren {
+		m.processNode(child, scene)
 	}
 }
 
@@ -121,12 +121,10 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	}
 	//indicies
 	meshFaces := unsafe.Slice(mesh.mFaces, mesh.mNumFaces)
-	for i := range int(mesh.mNumFaces) {
-		face := meshFaces[i]
-
+	for _, face := range meshFaces {
 		faceIndicies := unsafe.Slice(face.mIndices, face.mNumIndices)
-		for j := range int(face.mNumIndices) {
-			indices = append(indices, uint32(faceIndicies[j]))
+		for _, faceIndex := range faceIndicies {
+			indices = append(indices, uint32(faceIndex))
 		}
 	}
 
@@ -151,9 +149,9 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 		path := C.GoString(&cstr.data[0])
 
 		skip := false
-		for j := range len(m.texturesLoaded) {
-			if m.texturesLoaded[j].Path == path {
-				textures = append(textures, m.texturesLoaded[j])
+		for _, tex := range m.texturesLoaded {
+			if tex.Path == path {
+				textures = append(textures, tex)
 				skip = true
 				break
 			}
@@ -251,10 +249,10 @@ func (m Mesh) Draw(shader gogl.Shader) {
 	diffuseNr := 1
 	specularNr := 1
 
-	for i := uint32(0); i < uint32(len(m.Textures)); i++ {
-		gl.ActiveTexture(gl.TEXTURE0 + i)
+	for i, tex := range m.Textures {
+		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
 		var number string
-		name := m.Textures[i].TextureType
+		name := tex.TextureType
 		if name == "texture_diffuse" {
 			number = fmt.Sprintf("%d", diffuseNr)
 			diffuseNr++
