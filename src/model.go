@@ -27,8 +27,6 @@ type Model struct {
 }
 
 func NewModel(path string) Model {
-	fmt.Println(C.getNumber(5))
-
 	m := Model{}
 
 	m.loadModel(path)
@@ -42,13 +40,25 @@ func (m Model) Draw(shader gogl.Shader) {
 	}
 }
 
+//export GetRawModel
+func GetRawModel(path *C.char, size *C.int) *C.char {
+	goPath := C.GoString(path)
+	data := assets.MustLoadModel(goPath)
+
+	*size = C.int(len(data))
+	return (*C.char)(C.CBytes(data))
+}
+
 func (m *Model) loadModel(path string) {
-	cpath := C.CString("assets/models/" + path)
+	fileIO := C.CreateMemoryFileIO()
+
+	cpath := C.CString(path)
 	defer C.free(unsafe.Pointer(cpath))
 
-	scene := C.aiImportFile(
+	scene := C.aiImportFileEx(
 		cpath,
 		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
+		fileIO,
 	)
 	defer C.aiReleaseImport(scene)
 
