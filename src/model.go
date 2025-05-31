@@ -83,20 +83,20 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 }
 
 func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh {
-	var verticies []Vertex
+	var vertices []Vertex
 	var indices []uint32
 	var textures []Texture
 
-	// verticies
-	meshVerticies := unsafe.Slice(mesh.mVertices, mesh.mNumVertices)
+	// vertices
+	meshVertices := unsafe.Slice(mesh.mVertices, mesh.mNumVertices)
 	meshNormals := unsafe.Slice(mesh.mNormals, mesh.mNumVertices)
 	for i := range int(mesh.mNumVertices) {
 		var vertex Vertex
 
 		vertex.Position = mgl32.Vec3{
-			float32(meshVerticies[i].x),
-			float32(meshVerticies[i].y),
-			float32(meshVerticies[i].z),
+			float32(meshVertices[i].x),
+			float32(meshVertices[i].y),
+			float32(meshVertices[i].z),
 		}
 
 		vertex.Normal = mgl32.Vec3{
@@ -117,13 +117,13 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 			vertex.TexCoords = mgl32.Vec2{0, 0}
 		}
 
-		verticies = append(verticies, vertex)
+		vertices = append(vertices, vertex)
 	}
-	//indicies
+	//indices
 	meshFaces := unsafe.Slice(mesh.mFaces, mesh.mNumFaces)
 	for _, face := range meshFaces {
-		faceIndicies := unsafe.Slice(face.mIndices, face.mNumIndices)
-		for _, faceIndex := range faceIndicies {
+		faceIndices := unsafe.Slice(face.mIndices, face.mNumIndices)
+		for _, faceIndex := range faceIndices {
 			indices = append(indices, uint32(faceIndex))
 		}
 	}
@@ -138,7 +138,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	specularMaps := m.loadMaterialTextures(material, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
-	return NewMesh(verticies, indices, textures)
+	return NewMesh(vertices, indices, textures)
 }
 
 func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
@@ -228,7 +228,7 @@ type Texture struct {
 }
 
 type Mesh struct {
-	Verticies     []Vertex
+	Vertices      []Vertex
 	Indices       []uint32
 	Textures      []Texture
 	vao, vbo, ebo uint32
@@ -236,9 +236,9 @@ type Mesh struct {
 
 func NewMesh(verts []Vertex, indices []uint32, textures []Texture) Mesh {
 	m := Mesh{
-		Verticies: verts,
-		Indices:   indices,
-		Textures:  textures,
+		Vertices: verts,
+		Indices:  indices,
+		Textures: textures,
 	}
 	m.setupMesh()
 
@@ -261,7 +261,7 @@ func (m Mesh) Draw(shader gogl.Shader) {
 			diffuseNr++
 		}
 
-		shader.SetInt(("material." + name + number), int32(i))
+		shader.SetInt("material."+name+number, int32(i))
 		gl.BindTexture(gl.TEXTURE_2D, m.Textures[i].Id)
 	}
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -279,7 +279,7 @@ func (m *Mesh) setupMesh() {
 	gl.BindVertexArray(m.vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, m.vbo)
 
-	gl.BufferData(gl.ARRAY_BUFFER, len(m.Verticies)*int(unsafe.Sizeof(Vertex{})), gl.Ptr(m.Verticies), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(m.Vertices)*int(unsafe.Sizeof(Vertex{})), gl.Ptr(m.Vertices), gl.STATIC_DRAW)
 
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(m.Indices)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.Indices), gl.STATIC_DRAW)
