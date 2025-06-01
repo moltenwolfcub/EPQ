@@ -60,7 +60,8 @@ func (r *Renderer) setupWindow() {
 		window.Destroy()
 	}
 
-	r.testModel = NewModel("backpack/backpack.obj")
+	// r.testModel = NewModel("backpack/backpack.obj")
+	r.testModel = NewModel("terrain/terrain.obj")
 	r.testShader = gogl.Shader(gogl.NewEmbeddedShader(assets.BackpackVert, assets.BackpackFrag))
 }
 
