@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/veandco/go-sdl2/sdl"
@@ -9,43 +8,58 @@ import (
 	"github.com/moltenwolfcub/gogl-utils"
 )
 
-func main() {
-	r := NewRenderer()
-	defer r.Close()
+type Game struct {
+	renderer *Renderer
 
-	keyboardState := sdl.GetKeyboardState()
+	keyboardState []uint8
+
+	state     WorldState
+	playerPos mgl32.Vec3
+}
+
+func NewGame() *Game {
+	g := Game{}
+
+	g.renderer = NewRenderer()
+	g.keyboardState = sdl.GetKeyboardState()
 
 	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
 	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
-	state := WorldState{
+	g.state = WorldState{
 		NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
 		NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
 		NewWorldObject(gogl.Pentahedron(2), orangeShader, mgl32.Vec3{0, 0, -6}),
 	}
 
-	gl.BindVertexArray(0)
+	g.playerPos = mgl32.Vec3{}
 
-	playerPos := mgl32.Vec3{}
+	return &g
+}
 
+func (g *Game) close() {
+	g.renderer.Close()
+}
+
+func (g *Game) runGame() {
 	for {
-		if handleEvents() != 0 {
+		if g.handleEvents() != 0 {
 			return
 		}
 
 		translationVec := mgl32.Vec3{
-			float32(keyboardState[sdl.SCANCODE_A]) - float32(keyboardState[sdl.SCANCODE_D]),
-			float32(keyboardState[sdl.SCANCODE_LSHIFT]) - float32(keyboardState[sdl.SCANCODE_SPACE]),
-			float32(keyboardState[sdl.SCANCODE_W]) - float32(keyboardState[sdl.SCANCODE_S]),
+			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),
+			float32(g.keyboardState[sdl.SCANCODE_LSHIFT]) - float32(g.keyboardState[sdl.SCANCODE_SPACE]),
+			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
 		}
-		playerPos = playerPos.Add(translationVec.Mul(MOVEMENT_SPEED))
+		g.playerPos = g.playerPos.Add(translationVec.Mul(MOVEMENT_SPEED))
 
-		r.Draw(playerPos, state)
+		g.renderer.Draw(g.playerPos, g.state)
 	}
 }
 
-func handleEvents() int {
+func (g *Game) handleEvents() int {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
@@ -53,4 +67,10 @@ func handleEvents() int {
 		}
 	}
 	return 0
+}
+
+func main() {
+	g := NewGame()
+	defer g.close()
+	g.runGame()
 }
