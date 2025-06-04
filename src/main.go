@@ -60,10 +60,14 @@ func (g *Game) runGame() {
 }
 
 func (g *Game) handleEvents() int {
-	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch event.(type) {
+	for rawEvent := sdl.PollEvent(); rawEvent != nil; rawEvent = sdl.PollEvent() {
+		switch event := rawEvent.(type) {
 		case *sdl.QuitEvent:
 			return 1
+		case *sdl.WindowEvent:
+			if event.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
+				g.renderer.Resize(event.Data1, event.Data2)
+			}
 		}
 	}
 	return 0

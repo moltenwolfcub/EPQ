@@ -65,6 +65,15 @@ func (r *Renderer) setupWindow() {
 	r.testShader = gogl.Shader(gogl.NewEmbeddedShader(assets.BackpackVert, assets.BackpackFrag))
 }
 
+func (r *Renderer) Resize(nexX, newY int32) {
+	WINDOW_WIDTH = nexX
+	WINDOW_HEIGHT = newY
+
+	gl.Viewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+
+	r.camera.preCalculateMatricies()
+}
+
 // TODO: needs a lot of changing for when a player is implemented and a worldstate is made
 func (r *Renderer) alignCamera(focus mgl32.Vec3) {
 	newPos := focus.Add(mgl32.Vec3{-10, -10, -10})
