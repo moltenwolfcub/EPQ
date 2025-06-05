@@ -25,7 +25,7 @@ func NewGame() *Game {
 	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
 	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
-	terrain := NewModel("terrain/terrain.obj")
+	terrain := NewModel("terrain.obj")
 	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
 	g.state = WorldState{

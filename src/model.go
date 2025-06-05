@@ -21,9 +21,9 @@ import (
 )
 
 type Model struct {
-	Meshes         []Mesh
-	Directory      string
-	texturesLoaded []Texture
+	Meshes           []Mesh
+	textureDirectory string
+	texturesLoaded   []Texture
 }
 
 func NewModel(path string) Model {
@@ -67,12 +67,7 @@ func (m *Model) loadModel(path string) {
 		return
 	}
 
-	dirIndex := strings.LastIndex(path, "/")
-	if dirIndex != -1 {
-		m.Directory = path[:dirIndex]
-	} else {
-		m.Directory = path
-	}
+	m.textureDirectory = strings.Split(path, ".")[0]
 
 	m.processNode(scene.mRootNode, scene)
 }
@@ -171,7 +166,7 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 		}
 		if !skip {
 			var texture Texture
-			texture.Id = TextureFromFile(path, m.Directory)
+			texture.Id = TextureFromFile(path, m.textureDirectory)
 			texture.TextureType = typeName
 			texture.Path = path
 
