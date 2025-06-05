@@ -69,7 +69,7 @@ static size_t MyTellProc(C_STRUCT aiFile *) { return printf("TELL UNIMPLEMENTED\
 static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, const char *mode)
 {
 	int size = 0;
-	char *data = GetRawModel((char *)filename, &size);
+	char *data = getRawModel((char *)filename, &size);
 	if (!data)
 	{
 		printf("ERROR::C::Didn't properly recieve model from go\n");

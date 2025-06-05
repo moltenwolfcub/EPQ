@@ -4,4 +4,4 @@
 
 C_STRUCT aiFileIO *CreateMemoryFileIO();
 
-extern char *GetRawModel(char *path, int *size);
+extern char *getRawModel(char *path, int *size);

@@ -40,8 +40,8 @@ func (m Model) Draw(shader gogl.Shader) {
 	}
 }
 
-//export GetRawModel
-func GetRawModel(path *C.char, size *C.int) *C.char {
+//export getRawModel
+func getRawModel(path *C.char, size *C.int) *C.char {
 	goPath := C.GoString(path)
 	data := assets.MustLoadModel(goPath)
 
