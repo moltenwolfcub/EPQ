@@ -3,9 +3,8 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
-	"github.com/veandco/go-sdl2/sdl"
-
 	"github.com/moltenwolfcub/gogl-utils"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Game struct {
@@ -23,14 +22,18 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
-	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+
+	terrain := NewModel("terrain/terrain.obj")
+	testShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BackpackVert, assets.BackpackFrag))
 
 	g.state = WorldState{
-		NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
-		NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
-		NewWorldObject(gogl.Pentahedron(2), orangeShader, mgl32.Vec3{0, 0, -6}),
+		NewWorldObject(terrain, testShader, mgl32.Vec3{0, 0, 0}),
+		// NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
+		// NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
+		// NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
+		// NewWorldObject(gogl.Pentahedron(2), orangeShader, mgl32.Vec3{0, 0, -6}),
 	}
 
 	g.playerPos = mgl32.Vec3{}

@@ -7,18 +7,17 @@ import (
 
 type WorldState []*WorldObject
 
-// for now just a wrapper for a gogl-util object but eventually writing my own to function with assimp
 type WorldObject struct {
-	renderObj gogl.Object
-	shader    gogl.Shader
-	modelMat  mgl32.Mat4
+	model    Model
+	shader   gogl.Shader
+	modelMat mgl32.Mat4
 }
 
-func NewWorldObject(obj gogl.Object, shader gogl.Shader, pos mgl32.Vec3) *WorldObject {
+func NewWorldObject(model Model, shader gogl.Shader, pos mgl32.Vec3) *WorldObject {
 	return &WorldObject{
-		renderObj: obj,
-		shader:    shader,
-		modelMat:  mgl32.Translate3D(pos.Elem()),
+		model:    model,
+		shader:   shader,
+		modelMat: mgl32.Translate3D(pos.Elem()),
 	}
 }
 
@@ -28,6 +27,7 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4) {
 
 	o.shader.SetMatrix4("proj", proj)
 	o.shader.SetMatrix4("view", view)
+	o.shader.SetMatrix4("model", o.modelMat)
 
-	o.renderObj.Draw(o.shader, o.modelMat)
+	o.model.Draw(o.shader)
 }
