@@ -26,10 +26,10 @@ func NewGame() *Game {
 	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
 	terrain := NewModel("terrain/terrain.obj")
-	testShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BackpackVert, assets.BackpackFrag))
+	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
 	g.state = WorldState{
-		NewWorldObject(terrain, testShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
 		// NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
 		// NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
 		// NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
