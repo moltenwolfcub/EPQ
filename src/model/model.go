@@ -1,4 +1,4 @@
-package main
+package model
 
 // #cgo pkg-config: assimp zlib
 // #include <assimp/cimport.h>

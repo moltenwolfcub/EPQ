@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
+	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/gogl-utils"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -25,7 +26,7 @@ func NewGame() *Game {
 	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
 	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
-	terrain := NewModel("terrain.obj")
+	terrain := model.NewModel("terrain.obj")
 	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
 	g.state = WorldState{
