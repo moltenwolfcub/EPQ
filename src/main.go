@@ -23,18 +23,18 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
-	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
 	terrain := model.NewModel("terrain.obj")
 	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
 	g.state = WorldState{
 		NewWorldObject(terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		// NewWorldObject(gogl.Pentahedron(1), orangeShader, mgl32.Vec3{0, 0, 0}),
-		// NewWorldObject(gogl.Cube(2), blueShader, mgl32.Vec3{5, 0, 0}),
-		// NewWorldObject(gogl.Cube(1), blueShader, mgl32.Vec3{0, 3, 0}),
-		// NewWorldObject(gogl.Pentahedron(2), orangeShader, mgl32.Vec3{0, 0, -6}),
+		NewWorldObject(model.NewCubeModel(1), orangeShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(model.NewCubeModel(2), blueShader, mgl32.Vec3{5, 0, 0}),
+		NewWorldObject(model.NewCubeModel(1), blueShader, mgl32.Vec3{0, 3, 0}),
+		NewWorldObject(model.NewCubeModel(2), orangeShader, mgl32.Vec3{0, 0, -6}),
 	}
 
 	g.playerPos = mgl32.Vec3{}
