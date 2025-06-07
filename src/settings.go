@@ -6,6 +6,8 @@ const (
 	ORTHO_SCALE float32 = 20 / 2 // divide by 2 because then it maps to blender's orthographic scale
 
 	MOVEMENT_SPEED float32 = 0.1
+
+	DEBUG_PERSPECTIVE bool = false
 )
 
 var (

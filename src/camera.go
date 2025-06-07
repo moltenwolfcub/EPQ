@@ -19,8 +19,11 @@ func NewCamera() *Camera {
 func (c *Camera) preCalculateMatricies() {
 	aspectRatio := float32(WINDOW_WIDTH) / float32(WINDOW_HEIGHT)
 
-	c.projMat = mgl32.Ortho(-aspectRatio*ORTHO_SCALE/2, aspectRatio*ORTHO_SCALE/2, -ORTHO_SCALE/2, ORTHO_SCALE/2, 0.1, 100)
-	// c.projMat = mgl32.Perspective(45, aspectRatio, 0.1, 100)
+	if DEBUG_PERSPECTIVE {
+		c.projMat = mgl32.Perspective(45, aspectRatio, 0.1, 100)
+	} else {
+		c.projMat = mgl32.Ortho(-aspectRatio*ORTHO_SCALE/2, aspectRatio*ORTHO_SCALE/2, -ORTHO_SCALE/2, ORTHO_SCALE/2, 0.1, 100)
+	}
 	c.viewMat = mgl32.HomogRotate3DX(mgl32.DegToRad(30)).Mul4(mgl32.HomogRotate3DY(mgl32.DegToRad(-45)))
 }
 
