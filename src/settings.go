@@ -7,7 +7,7 @@ const (
 
 	MOVEMENT_SPEED float32 = 0.1
 
-	DEBUG_PERSPECTIVE bool = false
+	DEBUG_PERSPECTIVE bool = true
 )
 
 var (

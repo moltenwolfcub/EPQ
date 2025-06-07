@@ -29,12 +29,16 @@ func NewGame() *Game {
 	terrain := model.NewModel("terrain.obj")
 	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
+	simpleAnim := model.NewModel("simpleAnimatedModel.gltf")
+	simpleShader := gogl.Shader(gogl.NewEmbeddedShader(assets.SimpleVert, assets.SimpleFrag))
+
 	g.state = WorldState{
 		NewWorldObject(terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(model.NewCubeModel(1), orangeShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(model.NewCubeModel(2), blueShader, mgl32.Vec3{5, 0, 0}),
 		NewWorldObject(model.NewCubeModel(1), blueShader, mgl32.Vec3{0, 3, 0}),
 		NewWorldObject(model.NewCubeModel(2), orangeShader, mgl32.Vec3{0, 0, -6}),
+		NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
 	}
 
 	g.playerPos = mgl32.Vec3{}
