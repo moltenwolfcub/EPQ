@@ -90,6 +90,8 @@ func (m *Model) loadModel(path string) {
 
 	m.textureDirectory = strings.Split(path, ".")[0]
 
+	m.boneInfoMap = make(map[string]BoneInfo)
+
 	m.processNode(scene.mRootNode, scene)
 }
 
