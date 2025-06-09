@@ -38,6 +38,10 @@ func Mat4assimp2mgl(mat C.struct_aiMatrix4x4) mgl32.Mat4 {
 	}
 }
 
+func Lerp(x mgl32.Vec3, y mgl32.Vec3, a float32) mgl32.Vec3 {
+	return x.Mul(1 - a).Add(y.Mul(a))
+}
+
 type Model struct {
 	Meshes           []Mesh
 	textureDirectory string
@@ -383,4 +387,156 @@ func (m *Mesh) setupMesh() {
 	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Weights)))
 
 	gl.BindVertexArray(0)
+}
+
+type KeyPosition struct {
+	pos       mgl32.Vec3
+	timeStamp float32
+}
+type KeyRotation struct {
+	rot       mgl32.Quat
+	timeStamp float32
+}
+type KeyScale struct {
+	scale     mgl32.Vec3
+	timeStamp float32
+}
+
+type Bone struct {
+	positions      []KeyPosition
+	rotations      []KeyRotation
+	scales         []KeyScale
+	numPositions   int
+	numRotations   int
+	numScales      int
+	localTransform mgl32.Mat4
+	name           string
+	id             int
+}
+
+func NewBone(name string, id int, channel *C.struct_aiNodeAnim) Bone {
+	b := Bone{
+		name:           name,
+		id:             id,
+		localTransform: mgl32.Ident4(),
+	}
+
+	b.numPositions = int(channel.mNumPositionKeys)
+	positionArray := unsafe.Slice(channel.mPositionKeys, channel.mNumPositionKeys)
+	for _, pos := range positionArray {
+		data := KeyPosition{
+			pos: mgl32.Vec3{
+				float32(pos.mValue.x),
+				float32(pos.mValue.y),
+				float32(pos.mValue.z),
+			},
+			timeStamp: float32(pos.mTime),
+		}
+		b.positions = append(b.positions, data)
+	}
+
+	b.numRotations = int(channel.mNumRotationKeys)
+	rotationArray := unsafe.Slice(channel.mRotationKeys, channel.mNumRotationKeys)
+	for _, rot := range rotationArray {
+		data := KeyRotation{
+			rot: mgl32.Quat{
+				W: float32(rot.mValue.w),
+				V: mgl32.Vec3{
+					float32(rot.mValue.x),
+					float32(rot.mValue.y),
+					float32(rot.mValue.z),
+				},
+			},
+			timeStamp: float32(rot.mTime),
+		}
+		b.rotations = append(b.rotations, data)
+	}
+
+	b.numScales = int(channel.mNumScalingKeys)
+	scaleArray := unsafe.Slice(channel.mScalingKeys, channel.mNumScalingKeys)
+	for _, scales := range scaleArray {
+		data := KeyScale{
+			scale: mgl32.Vec3{
+				float32(scales.mValue.x),
+				float32(scales.mValue.y),
+				float32(scales.mValue.z),
+			},
+			timeStamp: float32(scales.mTime),
+		}
+		b.scales = append(b.scales, data)
+	}
+
+	return b
+}
+
+func (b *Bone) Update(animationTime float32) {
+	translation := b.interpolatePosition(animationTime)
+	rotation := b.interpolateRotation(animationTime)
+	scale := b.interpolateScaling(animationTime)
+	b.localTransform = translation.Mul4(rotation.Mul4(scale))
+}
+
+func (b Bone) GetPositionIndex(animationTime float32) int {
+	for index := range b.numPositions - 1 {
+		if animationTime < b.positions[index+1].timeStamp {
+			return index
+		}
+	}
+	panic(fmt.Errorf("no position index found for animationTime %f", animationTime))
+}
+func (b Bone) GetRotationIndex(animationTime float32) int {
+	for index := range b.numRotations - 1 {
+		if animationTime < b.rotations[index+1].timeStamp {
+			return index
+		}
+	}
+	panic(fmt.Errorf("no rotation index found for animationTime %f", animationTime))
+}
+func (b Bone) GetScaleIndex(animationTime float32) int {
+	for index := range b.numScales - 1 {
+		if animationTime < b.scales[index+1].timeStamp {
+			return index
+		}
+	}
+	panic(fmt.Errorf("no scale index found for animationTime %f", animationTime))
+}
+
+func (b Bone) getScaleFactor(lastTimeStamp float32, nextTimeStamp float32, animationTime float32) float32 {
+	midwayLength := animationTime - lastTimeStamp
+	framesDiff := nextTimeStamp - lastTimeStamp
+	return midwayLength / framesDiff
+}
+
+func (b *Bone) interpolatePosition(animationTime float32) mgl32.Mat4 {
+	if b.numPositions == 1 {
+		return mgl32.Translate3D(b.positions[0].pos.Elem())
+	}
+	p0Index := b.GetPositionIndex(animationTime)
+	p1Index := p0Index + 1
+	scaleFactor := b.getScaleFactor(b.positions[p0Index].timeStamp, b.positions[p1Index].timeStamp, animationTime)
+
+	finalPos := Lerp(b.positions[p0Index].pos, b.positions[p1Index].pos, scaleFactor)
+	return mgl32.Translate3D(finalPos.Elem())
+}
+func (b *Bone) interpolateRotation(animationTime float32) mgl32.Mat4 {
+	if b.numRotations == 1 {
+		return b.rotations[0].rot.Normalize().Mat4()
+	}
+	p0Index := b.GetRotationIndex(animationTime)
+	p1Index := p0Index + 1
+	scaleFactor := b.getScaleFactor(b.rotations[p0Index].timeStamp, b.rotations[p1Index].timeStamp, animationTime)
+
+	finalRotation := mgl32.QuatSlerp(b.rotations[p0Index].rot, b.rotations[p1Index].rot, scaleFactor)
+	return finalRotation.Normalize().Mat4()
+}
+func (b *Bone) interpolateScaling(animationTime float32) mgl32.Mat4 {
+	if b.numScales == 1 {
+		return mgl32.Scale3D(b.scales[0].scale.Elem())
+	}
+	p0Index := b.GetScaleIndex(animationTime)
+	p1Index := p0Index + 1
+	scaleFactor := b.getScaleFactor(b.scales[p0Index].timeStamp, b.scales[p1Index].timeStamp, animationTime)
+
+	finalScale := Lerp(b.scales[p0Index].scale, b.scales[p1Index].scale, scaleFactor)
+	return mgl32.Scale3D(finalScale.Elem())
 }
