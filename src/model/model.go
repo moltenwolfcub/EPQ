@@ -173,12 +173,6 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	textures = append(textures, specularMaps...)
 
 	// bone data
-	m.ExtractBoneVertexWeights(vertices, mesh)
-
-	return NewMesh(vertices, indices, textures)
-}
-
-func (m *Model) ExtractBoneVertexWeights(vertices []Vertex, mesh *C.struct_aiMesh) {
 	meshBones := unsafe.Slice(mesh.mBones, mesh.mNumBones)
 
 	for _, bone := range meshBones {
@@ -202,19 +196,18 @@ func (m *Model) ExtractBoneVertexWeights(vertices []Vertex, mesh *C.struct_aiMes
 		meshWeights := unsafe.Slice(bone.mWeights, bone.mNumWeights)
 
 		for _, weight := range meshWeights {
-			m.SetVertexBoneData(vertices[weight.mVertexId], boneId, float32(weight.mWeight))
+			vertex := vertices[weight.mVertexId]
+			for i := range max_bone_influence {
+				if vertex.BoneIDs[i] < 0 {
+					vertex.Weights[i] = float32(weight.mVertexId)
+					vertex.BoneIDs[i] = boneId
+					break
+				}
+			}
 		}
 	}
-}
 
-func (m *Model) SetVertexBoneData(vertex Vertex, boneId int, weight float32) {
-	for i := range max_bone_influence {
-		if vertex.BoneIDs[i] < 0 {
-			vertex.Weights[i] = weight
-			vertex.BoneIDs[i] = boneId
-			break
-		}
-	}
+	return NewMesh(vertices, indices, textures)
 }
 
 func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
