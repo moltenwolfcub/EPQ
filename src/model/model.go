@@ -20,10 +20,31 @@ import (
 	"github.com/moltenwolfcub/gogl-utils"
 )
 
+//export getRawModel
+func getRawModel(path *C.char, size *C.int) *C.char {
+	goPath := C.GoString(path)
+	data := assets.MustLoadModel(goPath)
+
+	*size = C.int(len(data))
+	return (*C.char)(C.CBytes(data))
+}
+
+func Mat4assimp2mgl(mat C.struct_aiMatrix4x4) mgl32.Mat4 {
+	return mgl32.Mat4{
+		float32(mat.a1), float32(mat.b1), float32(mat.c1), float32(mat.d1),
+		float32(mat.a2), float32(mat.b2), float32(mat.c2), float32(mat.d2),
+		float32(mat.a3), float32(mat.b3), float32(mat.c3), float32(mat.d3),
+		float32(mat.a4), float32(mat.b4), float32(mat.c4), float32(mat.d4),
+	}
+}
+
 type Model struct {
 	Meshes           []Mesh
 	textureDirectory string
 	texturesLoaded   []Texture
+
+	boneInfoMap map[string]BoneInfo
+	boneCounter int
 }
 
 func NewModel(path string) Model {
@@ -40,13 +61,13 @@ func (m Model) Draw(shader gogl.Shader) {
 	}
 }
 
-//export getRawModel
-func getRawModel(path *C.char, size *C.int) *C.char {
-	goPath := C.GoString(path)
-	data := assets.MustLoadModel(goPath)
-
-	*size = C.int(len(data))
-	return (*C.char)(C.CBytes(data))
+// very anti-go style so prolly gonna fix later.
+// following a c++ tutorial again
+func (m Model) getBoneInfoMap() map[string]BoneInfo {
+	return m.boneInfoMap
+}
+func (m Model) getBoneCount() int {
+	return m.boneCounter
 }
 
 func (m *Model) loadModel(path string) {
@@ -101,6 +122,11 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	for i := range int(mesh.mNumVertices) {
 		var vertex Vertex
 
+		for i := range max_bone_influence {
+			vertex.BoneIDs[i] = -1
+			vertex.Weights[i] = 0
+		}
+
 		vertex.Position = mgl32.Vec3{
 			float32(meshVertices[i].x),
 			float32(meshVertices[i].y),
@@ -146,7 +172,49 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	specularMaps := m.loadMaterialTextures(material, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
+	// bone data
+	m.ExtractBoneVertexWeights(vertices, mesh)
+
 	return NewMesh(vertices, indices, textures)
+}
+
+func (m *Model) ExtractBoneVertexWeights(vertices []Vertex, mesh *C.struct_aiMesh) {
+	meshBones := unsafe.Slice(mesh.mBones, mesh.mNumBones)
+
+	for _, bone := range meshBones {
+		boneId := -1
+		boneName := C.GoString(&bone.mName.data[0])
+
+		info, ok := m.boneInfoMap[boneName]
+		if !ok {
+			newInfo := BoneInfo{
+				Id:     m.boneCounter,
+				Offset: Mat4assimp2mgl(bone.mOffsetMatrix),
+			}
+			m.boneInfoMap[boneName] = newInfo
+			boneId = m.boneCounter
+			m.boneCounter++
+
+		} else {
+			boneId = info.Id
+		}
+
+		meshWeights := unsafe.Slice(bone.mWeights, bone.mNumWeights)
+
+		for _, weight := range meshWeights {
+			m.SetVertexBoneData(vertices[weight.mVertexId], boneId, float32(weight.mWeight))
+		}
+	}
+}
+
+func (m *Model) SetVertexBoneData(vertex Vertex, boneId int, weight float32) {
+	for i := range max_bone_influence {
+		if vertex.BoneIDs[i] < 0 {
+			vertex.Weights[i] = weight
+			vertex.BoneIDs[i] = boneId
+			break
+		}
+	}
 }
 
 func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
@@ -223,10 +291,20 @@ func flipVertical(img image.Image) *image.NRGBA {
 	return flipped
 }
 
+const max_bone_influence int = 4
+
+type BoneInfo struct {
+	Id     int        // index in finalBoneMatricies
+	Offset mgl32.Mat4 // transforms vertex from model to bone space
+}
+
 type Vertex struct {
 	Position  mgl32.Vec3
 	Normal    mgl32.Vec3
 	TexCoords mgl32.Vec2
+
+	BoneIDs [max_bone_influence]int
+	Weights [max_bone_influence]float32
 }
 
 type Texture struct {
@@ -301,6 +379,13 @@ func (m *Mesh) setupMesh() {
 	// texture Coords
 	gl.EnableVertexAttribArray(2)
 	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.TexCoords)))
+	// bone IDs
+	gl.EnableVertexAttribArray(3)
+	gl.VertexAttribIPointer(3, 4, gl.INT, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.BoneIDs)))
+	//TODO: change boneIDs to int[4] rather than an ivec4 because it is slightly missleading
+	// weights
+	gl.EnableVertexAttribArray(4)
+	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Weights)))
 
 	gl.BindVertexArray(0)
 }

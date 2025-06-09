@@ -26,6 +26,8 @@ var (
 	AssimpModelVert string = MustLoadShader("assimpModel.vert")
 	AssimpModelFrag string = MustLoadShader("assimpModel.frag")
 
+	AnimatedModelVert string = MustLoadShader("animatedModel.vert")
+
 	SimpleVert string = MustLoadShader("simple.vert")
 	SimpleFrag string = MustLoadShader("simple.frag")
 )
