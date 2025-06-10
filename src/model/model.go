@@ -389,6 +389,96 @@ func (m *Mesh) setupMesh() {
 	gl.BindVertexArray(0)
 }
 
+type AssimpNodeData struct {
+	transformation mgl32.Mat4
+	name           string
+	childrenCount  int
+	children       []AssimpNodeData
+}
+
+type Animation struct {
+	duration       float32
+	ticksPerSecond int
+	bones          []Bone
+	rootNode       AssimpNodeData
+	boneInfoMap    map[string]BoneInfo
+}
+
+func NewAnimation(animationPath string, model *Model) Animation {
+	fileIO := C.CreateMemoryFileIO()
+	cpath := C.CString(animationPath)
+	defer C.free(unsafe.Pointer(cpath))
+
+	scene := C.aiImportFileEx(
+		cpath,
+		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
+		fileIO,
+	)
+	defer C.aiReleaseImport(scene)
+
+	if scene == nil || (scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene.mRootNode == nil {
+		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
+		return Animation{}
+	}
+
+	a := Animation{
+		boneInfoMap: make(map[string]BoneInfo),
+	}
+
+	sceneAnimation := unsafe.Slice(scene.mAnimations, scene.mNumAnimations)
+	animation := sceneAnimation[0] //TODO i think this only loads the first animation. Adapt for any animation
+
+	a.duration = float32(animation.mDuration)
+	a.ticksPerSecond = int(animation.mTicksPerSecond)
+	a.rootNode = a.readHeirarchyData(scene.mRootNode)
+	a.readMissingBones(animation, model)
+
+	return a
+}
+
+func (a Animation) FindBone(name string) *Bone {
+	for _, bone := range a.bones {
+		if bone.name == name {
+			return &bone
+		}
+	}
+	return nil
+}
+
+func (a Animation) readHeirarchyData(src *C.struct_aiNode) AssimpNodeData {
+	dest := AssimpNodeData{
+		name:           C.GoString(&src.mName.data[0]),
+		transformation: Mat4assimp2mgl(src.mTransformation),
+		childrenCount:  int(src.mNumChildren),
+		children:       make([]AssimpNodeData, 0, int(src.mNumChildren)),
+	}
+
+	srcChildren := unsafe.Slice(src.mChildren, src.mNumChildren)
+	for _, childNode := range srcChildren {
+		childDdata := a.readHeirarchyData(childNode)
+		dest.children = append(dest.children, childDdata)
+	}
+	return dest
+}
+
+func (a *Animation) readMissingBones(animation *C.struct_aiAnimation, model *Model) {
+	boneInfoMap := model.getBoneInfoMap()
+	boneCount := model.getBoneCount()
+
+	channels := unsafe.Slice(animation.mChannels, animation.mNumChannels)
+	for _, channel := range channels {
+		boneName := C.GoString(&channel.mNodeName.data[0])
+		if _, ok := boneInfoMap[boneName]; !ok {
+			boneInfoMap[boneName] = BoneInfo{
+				Id: boneCount,
+			}
+			boneCount++
+		}
+		a.bones = append(a.bones, NewBone(boneName, boneInfoMap[boneName].Id, channel))
+	}
+	a.boneInfoMap = boneInfoMap
+}
+
 type KeyPosition struct {
 	pos       mgl32.Vec3
 	timeStamp float32
