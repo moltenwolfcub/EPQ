@@ -15,6 +15,8 @@ type Game struct {
 
 	state     WorldState
 	playerPos mgl32.Vec3
+
+	vampireAnimator model.Animator
 }
 
 func NewGame() *Game {
@@ -35,15 +37,30 @@ func NewGame() *Game {
 	animatedShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 
 	vampire := model.NewModel("dancing_vampire.dae")
+	vampireAnimation := model.NewAnimation("dancing_vampire.dae", &vampire)
+	g.vampireAnimator = model.NewAnimator(&vampireAnimation)
+
+	vampireObject := NewWorldObject(&vampire, animatedShader, mgl32.Vec3{0, 5, 0})
+	vampireObject.modelMat = vampireObject.modelMat.Mul4(mgl32.Scale3D(0.05, 0.05, 0.05))
+	vampireObject.uniformSetter = func(s gogl.Shader) gogl.Shader {
+		// transforms := g.vampireAnimator.GetFinalBoneMatrices()
+		// for i, mat := range transforms {
+		// 	s.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)
+		// }
+
+		return s
+	}
+	cube := model.NewCubeModel(1)
+	bigCuge := model.NewCubeModel(2)
 
 	g.state = WorldState{
-		NewWorldObject(terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(model.NewCubeModel(1), orangeShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(model.NewCubeModel(2), blueShader, mgl32.Vec3{5, 0, 0}),
-		NewWorldObject(model.NewCubeModel(1), blueShader, mgl32.Vec3{0, 3, 0}),
-		NewWorldObject(model.NewCubeModel(2), orangeShader, mgl32.Vec3{0, 0, -6}),
+		NewWorldObject(&terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(&cube, orangeShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(&bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
+		NewWorldObject(&cube, blueShader, mgl32.Vec3{0, 3, 0}),
+		NewWorldObject(&bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		NewWorldObject(vampire, animatedShader, mgl32.Vec3{0, 10, 0}),
+		vampireObject,
 	}
 
 	g.playerPos = mgl32.Vec3{}
@@ -56,10 +73,17 @@ func (g *Game) close() {
 }
 
 func (g *Game) runGame() {
+	var lastFrame uint64
 	for {
+		now := sdl.GetTicks64()
+		deltaTime := float32(now-lastFrame) / 1000
+		lastFrame = now
+
 		if g.handleEvents() != 0 {
 			return
 		}
+
+		g.vampireAnimator.UpdateAnimation(deltaTime)
 
 		translationVec := mgl32.Vec3{
 			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),

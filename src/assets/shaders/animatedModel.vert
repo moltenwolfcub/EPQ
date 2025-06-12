@@ -12,26 +12,27 @@ uniform mat4 proj;
 
 const int MAX_BONES = 100;
 const int MAX_BONES_INFLUENCE = 4;
-uniform mat4 finalBonesMatricies[MAX_BONES];
+uniform mat4 finalBonesMatrices[MAX_BONES];
 
 out vec2 TexCoord;
 
 void main() {
+	// vec4 riggedPos = vec4(0);
+	vec4 riggedPos = vec4(aPos, 1);
 
-	vec4 riggedPos = vec4(0);
-	for(int i = 0; i < MAX_BONES_INFLUENCE; i++) {
-		if(aBoneIds[i] == -1) {
-			continue;
-		}
-		if(aBoneIds[i] >= MAX_BONES) {
-			riggedPos = vec4(aPos, 1);
-			break;
-		}
+	// for(int i = 0; i < MAX_BONES_INFLUENCE; i++) {
+	// 	if(aBoneIds[i] == -1) {
+	// 		continue;
+	// 	}
+	// 	if(aBoneIds[i] >= MAX_BONES) {
+	// 		riggedPos = vec4(aPos, 1);
+	// 		break;
+	// 	}
 
-		vec4 localPos = finalBonesMatricies[aBoneIds[i]] * vec4(aPos, 1);
-		riggedPos += localPos * aweights[i];
-		// vec3 localNormal = mat3(finalBonesMatricies[aBoneIds[i]]) * aNormal;
-	}
+	// 	vec4 localPos = finalBonesMatrices[aBoneIds[i]] * vec4(aPos, 1);
+	// 	riggedPos += localPos * aweights[i];
+	// 	// vec3 localNormal = mat3(finalBonesMatricies[aBoneIds[i]]) * aNormal;
+	// }
 
 	gl_Position = proj * view * model * riggedPos;
 	TexCoord = aTexCoord;

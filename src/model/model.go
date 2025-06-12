@@ -82,7 +82,7 @@ func (m *Model) loadModel(path string) {
 
 	scene := C.aiImportFileEx(
 		cpath,
-		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
+		C.uint(C.aiProcess_Triangulate), //|C.aiProcess_FlipUVs //TODO had to turn off filpUVs for this model
 		fileIO,
 	)
 	defer C.aiReleaseImport(scene)
@@ -387,6 +387,64 @@ func (m *Mesh) setupMesh() {
 	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Weights)))
 
 	gl.BindVertexArray(0)
+}
+
+type Animator struct {
+	finalBoneMatricies []mgl32.Mat4
+	currentAnimation   *Animation
+	currentTime        float32
+}
+
+func NewAnimator(animation *Animation) Animator {
+	a := Animator{
+		finalBoneMatricies: make([]mgl32.Mat4, 0, 100),
+		currentAnimation:   animation,
+		currentTime:        0,
+	}
+
+	for range 100 {
+		a.finalBoneMatricies = append(a.finalBoneMatricies, mgl32.Ident4())
+	}
+
+	return a
+}
+
+func (a *Animator) UpdateAnimation(dt float32) {
+	if a.currentAnimation != nil {
+		a.currentTime += float32(a.currentAnimation.ticksPerSecond) * dt
+		a.currentTime = gogl.Mod32(a.currentTime, a.currentAnimation.duration)
+		a.CalculateBoneTransform(&a.currentAnimation.rootNode, mgl32.Ident4())
+	}
+}
+
+func (a *Animator) PlayAnimation(animation *Animation) {
+	a.currentAnimation = animation
+	a.currentTime = 0
+}
+
+func (a *Animator) CalculateBoneTransform(node *AssimpNodeData, parentTransform mgl32.Mat4) {
+	nodeTransform := node.transformation
+
+	bone := a.currentAnimation.FindBone(node.name)
+	if bone != nil {
+		bone.Update(a.currentTime)
+		nodeTransform = bone.localTransform
+	}
+
+	globalTransform := parentTransform.Mul4(nodeTransform)
+
+	boneInfoMap := a.currentAnimation.boneInfoMap
+	if info, ok := boneInfoMap[node.name]; ok {
+		a.finalBoneMatricies[info.Id] = globalTransform.Mul4(info.Offset)
+	}
+
+	for _, child := range node.children {
+		a.CalculateBoneTransform(&child, globalTransform)
+	}
+}
+
+func (a Animator) GetFinalBoneMatrices() []mgl32.Mat4 {
+	return a.finalBoneMatricies
 }
 
 type AssimpNodeData struct {
