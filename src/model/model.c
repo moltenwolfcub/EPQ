@@ -102,7 +102,7 @@ static C_STRUCT aiFile *MyOpenProc(C_STRUCT aiFileIO *io, const char *filename, 
 	file->TellProc = MyTellProc;
 	file->FileSizeProc = MyFileSizeProc;
 	file->FlushProc = MyFlushProc;
-	file->UserData = embed;
+	file->UserData = (char *)embed;
 	return file;
 }
 static void MyCloseProc(C_STRUCT aiFileIO *io, C_STRUCT aiFile *file)
