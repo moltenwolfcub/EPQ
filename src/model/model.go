@@ -451,7 +451,6 @@ func (a Animator) GetFinalBoneMatrices() []mgl32.Mat4 {
 type AssimpNodeData struct {
 	transformation mgl32.Mat4
 	name           string
-	childrenCount  int
 	children       []AssimpNodeData
 }
 
@@ -508,7 +507,6 @@ func (a Animation) readHeirarchyData(src *C.struct_aiNode) AssimpNodeData {
 	dest := AssimpNodeData{
 		name:           C.GoString(&src.mName.data[0]),
 		transformation: Mat4assimp2mgl(src.mTransformation),
-		childrenCount:  int(src.mNumChildren),
 		children:       make([]AssimpNodeData, 0, int(src.mNumChildren)),
 	}
 
@@ -533,7 +531,7 @@ func (a *Animation) readMissingBones(animation *C.struct_aiAnimation, model *Mod
 			}
 			boneCount++
 		}
-		a.bones = append(a.bones, NewBone(boneName, boneInfoMap[boneName].Id, channel))
+		a.bones = append(a.bones, NewBone(boneName /*,boneInfoMap[boneName].Id*/, channel))
 	}
 	a.boneInfoMap = boneInfoMap
 }
@@ -555,22 +553,16 @@ type Bone struct {
 	positions      []KeyPosition
 	rotations      []KeyRotation
 	scales         []KeyScale
-	numPositions   int
-	numRotations   int
-	numScales      int
 	localTransform mgl32.Mat4
 	name           string
-	id             int
 }
 
-func NewBone(name string, id int, channel *C.struct_aiNodeAnim) Bone {
+func NewBone(name string, channel *C.struct_aiNodeAnim) Bone {
 	b := Bone{
 		name:           name,
-		id:             id,
 		localTransform: mgl32.Ident4(),
 	}
 
-	b.numPositions = int(channel.mNumPositionKeys)
 	positionArray := unsafe.Slice(channel.mPositionKeys, channel.mNumPositionKeys)
 	for _, pos := range positionArray {
 		data := KeyPosition{
@@ -584,7 +576,6 @@ func NewBone(name string, id int, channel *C.struct_aiNodeAnim) Bone {
 		b.positions = append(b.positions, data)
 	}
 
-	b.numRotations = int(channel.mNumRotationKeys)
 	rotationArray := unsafe.Slice(channel.mRotationKeys, channel.mNumRotationKeys)
 	for _, rot := range rotationArray {
 		data := KeyRotation{
@@ -601,7 +592,6 @@ func NewBone(name string, id int, channel *C.struct_aiNodeAnim) Bone {
 		b.rotations = append(b.rotations, data)
 	}
 
-	b.numScales = int(channel.mNumScalingKeys)
 	scaleArray := unsafe.Slice(channel.mScalingKeys, channel.mNumScalingKeys)
 	for _, scales := range scaleArray {
 		data := KeyScale{
@@ -626,7 +616,7 @@ func (b *Bone) Update(animationTime float32) {
 }
 
 func (b Bone) GetPositionIndex(animationTime float32) int {
-	for index := range b.numPositions - 1 {
+	for index := range len(b.positions) - 1 {
 		if animationTime < b.positions[index+1].timeStamp {
 			return index
 		}
@@ -634,7 +624,7 @@ func (b Bone) GetPositionIndex(animationTime float32) int {
 	panic(fmt.Errorf("no position index found for animationTime %f", animationTime))
 }
 func (b Bone) GetRotationIndex(animationTime float32) int {
-	for index := range b.numRotations - 1 {
+	for index := range len(b.rotations) - 1 {
 		if animationTime < b.rotations[index+1].timeStamp {
 			return index
 		}
@@ -642,7 +632,7 @@ func (b Bone) GetRotationIndex(animationTime float32) int {
 	panic(fmt.Errorf("no rotation index found for animationTime %f", animationTime))
 }
 func (b Bone) GetScaleIndex(animationTime float32) int {
-	for index := range b.numScales - 1 {
+	for index := range len(b.scales) - 1 {
 		if animationTime < b.scales[index+1].timeStamp {
 			return index
 		}
@@ -657,7 +647,7 @@ func (b Bone) getScaleFactor(lastTimeStamp float32, nextTimeStamp float32, anima
 }
 
 func (b *Bone) interpolatePosition(animationTime float32) mgl32.Mat4 {
-	if b.numPositions == 1 {
+	if len(b.positions) == 1 {
 		return mgl32.Translate3D(b.positions[0].pos.Elem())
 	}
 	p0Index := b.GetPositionIndex(animationTime)
@@ -668,7 +658,7 @@ func (b *Bone) interpolatePosition(animationTime float32) mgl32.Mat4 {
 	return mgl32.Translate3D(finalPos.Elem())
 }
 func (b *Bone) interpolateRotation(animationTime float32) mgl32.Mat4 {
-	if b.numRotations == 1 {
+	if len(b.rotations) == 1 {
 		return b.rotations[0].rot.Normalize().Mat4()
 	}
 	p0Index := b.GetRotationIndex(animationTime)
@@ -679,7 +669,7 @@ func (b *Bone) interpolateRotation(animationTime float32) mgl32.Mat4 {
 	return finalRotation.Normalize().Mat4()
 }
 func (b *Bone) interpolateScaling(animationTime float32) mgl32.Mat4 {
-	if b.numScales == 1 {
+	if len(b.scales) == 1 {
 		return mgl32.Scale3D(b.scales[0].scale.Elem())
 	}
 	p0Index := b.GetScaleIndex(animationTime)
