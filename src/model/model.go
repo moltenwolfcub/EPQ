@@ -65,15 +65,6 @@ func (m Model) Draw(shader gogl.Shader) {
 	}
 }
 
-// very anti-go style so prolly gonna fix later.
-// following a c++ tutorial again
-func (m Model) getBoneInfoMap() map[string]BoneInfo {
-	return m.boneInfoMap
-}
-func (m Model) getBoneCount() int {
-	return m.boneCounter
-}
-
 func (m *Model) loadModel(path string) {
 	fileIO := C.CreateMemoryFileIO()
 
@@ -519,8 +510,8 @@ func (a Animation) readHeirarchyData(src *C.struct_aiNode) AssimpNodeData {
 }
 
 func (a *Animation) readMissingBones(animation *C.struct_aiAnimation, model *Model) {
-	boneInfoMap := model.getBoneInfoMap()
-	boneCount := model.getBoneCount()
+	boneInfoMap := model.boneInfoMap
+	boneCount := model.boneCounter
 
 	channels := unsafe.Slice(animation.mChannels, animation.mNumChannels)
 	for _, channel := range channels {
