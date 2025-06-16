@@ -6,7 +6,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
-	"github.com/moltenwolfcub/gogl-utils"
+	"github.com/moltenwolfcub/EPQ/src/shader"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -36,7 +36,7 @@ func NewGame() *Game {
 	// simpleAnim := model.NewModel("simpleAnimatedModel.gltf")
 
 	// simpleShader := gogl.Shader(gogl.NewEmbeddedShader(assets.SimpleVert, assets.SimpleFrag))
-	animatedShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
+	animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 
 	vampire := model.NewModel("dancing_vampire.dae")
 	vampireAnimation := model.NewAnimation("dancing_vampire.dae", &vampire)
@@ -44,7 +44,7 @@ func NewGame() *Game {
 
 	vampireObject := NewWorldObject(&vampire, animatedShader, mgl32.Vec3{0, 0, 0})
 	// vampireObject.modelMat = vampireObject.modelMat.Mul4(mgl32.Scale3D(0.05, 0.05, 0.05))
-	vampireObject.uniformSetter = func(s gogl.Shader) gogl.Shader {
+	vampireObject.uniformSetter = func(s shader.Shader) shader.Shader {
 		transforms := g.vampireAnimator.GetFinalBoneMatrices()
 		for i, mat := range transforms {
 			s.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)

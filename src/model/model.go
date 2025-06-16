@@ -11,13 +11,14 @@ import "C"
 import (
 	"fmt"
 	"image"
+	"math"
 	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
-	"github.com/moltenwolfcub/gogl-utils"
+	"github.com/moltenwolfcub/EPQ/src/shader"
 )
 
 //export getRawModel
@@ -59,7 +60,7 @@ func NewModel(path string) Model {
 	return m
 }
 
-func (m Model) Draw(shader gogl.Shader) {
+func (m Model) Draw(shader shader.Shader) {
 	for _, mesh := range m.Meshes {
 		mesh.Draw(shader)
 	}
@@ -322,7 +323,7 @@ func NewMesh(verts []Vertex, indices []uint32, textures []Texture) Mesh {
 	return m
 }
 
-func (m Mesh) Draw(shader gogl.Shader) {
+func (m Mesh) Draw(shader shader.Shader) {
 	diffuseNr := 1
 	specularNr := 1
 
@@ -404,7 +405,7 @@ func NewAnimator(animation *Animation) Animator {
 func (a *Animator) UpdateAnimation(dt float32) {
 	if a.currentAnimation != nil {
 		a.currentTime += float32(a.currentAnimation.ticksPerSecond) * dt
-		a.currentTime = gogl.Mod32(a.currentTime, a.currentAnimation.duration)
+		a.currentTime = float32(math.Mod(float64(a.currentTime), float64(a.currentAnimation.duration)))
 		a.CalculateBoneTransform(&a.currentAnimation.rootNode, mgl32.Ident4())
 	}
 }

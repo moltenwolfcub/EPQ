@@ -9,7 +9,7 @@ struct Material {
 uniform Material material;
 
 void main() {
-	vec4 mappedColor = texture2D(material.texture_diffuse1, TexCoord);
+	vec4 mappedColor = texture(material.texture_diffuse1, TexCoord);
 	if(mappedColor.a < 0.1) {
 		discard;
 	}

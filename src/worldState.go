@@ -3,20 +3,20 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/model"
-	"github.com/moltenwolfcub/gogl-utils"
+	"github.com/moltenwolfcub/EPQ/src/shader"
 )
 
 type WorldState []*WorldObject
 
 type WorldObject struct {
 	model    *model.Model
-	shader   gogl.Shader
+	shader   shader.Shader
 	modelMat mgl32.Mat4
 
-	uniformSetter func(gogl.Shader) gogl.Shader
+	uniformSetter func(shader.Shader) shader.Shader
 }
 
-func NewWorldObject(model *model.Model, shader gogl.Shader, pos mgl32.Vec3) *WorldObject {
+func NewWorldObject(model *model.Model, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
 	return &WorldObject{
 		model:    model,
 		shader:   shader,
