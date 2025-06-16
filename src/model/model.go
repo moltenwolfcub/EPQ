@@ -206,7 +206,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 			for i := range max_bone_influence {
 				if vertex.BoneIDs[i] < 0 {
 					vertex.Weights[i] = float32(weight.mWeight)
-					vertex.BoneIDs[i] = boneId
+					vertex.BoneIDs[i] = int32(boneId)
 					break
 				}
 			}
@@ -303,7 +303,7 @@ type Vertex struct {
 	Normal    mgl32.Vec3
 	TexCoords mgl32.Vec2
 
-	BoneIDs [max_bone_influence]int
+	BoneIDs [max_bone_influence]int32
 	Weights [max_bone_influence]float32
 }
 
@@ -388,9 +388,6 @@ func (m *Mesh) setupMesh() {
 	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Weights)))
 
 	gl.BindVertexArray(0)
-	// for _, v := range m.Vertices {
-	// 	fmt.Println(v.BoneIDs, v.Weights)
-	// }
 }
 
 type Animator struct {
