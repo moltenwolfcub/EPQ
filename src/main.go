@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
@@ -25,11 +27,11 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
-	blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 
-	terrain := model.NewModel("terrain.obj")
-	assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
+	// terrain := model.NewModel("terrain.obj")
+	// assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 
 	// simpleAnim := model.NewModel("simpleAnimatedModel.gltf")
 
@@ -40,25 +42,25 @@ func NewGame() *Game {
 	vampireAnimation := model.NewAnimation("dancing_vampire.dae", &vampire)
 	g.vampireAnimator = model.NewAnimator(&vampireAnimation)
 
-	vampireObject := NewWorldObject(&vampire, animatedShader, mgl32.Vec3{0, 5, 0})
-	vampireObject.modelMat = vampireObject.modelMat.Mul4(mgl32.Scale3D(0.05, 0.05, 0.05))
+	vampireObject := NewWorldObject(&vampire, animatedShader, mgl32.Vec3{0, 0, 0})
+	// vampireObject.modelMat = vampireObject.modelMat.Mul4(mgl32.Scale3D(0.05, 0.05, 0.05))
 	vampireObject.uniformSetter = func(s gogl.Shader) gogl.Shader {
-		// transforms := g.vampireAnimator.GetFinalBoneMatrices()
-		// for i, mat := range transforms {
-		// 	s.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)
-		// }
+		transforms := g.vampireAnimator.GetFinalBoneMatrices()
+		for i, mat := range transforms {
+			s.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)
+		}
 
 		return s
 	}
-	cube := model.NewCubeModel(1)
-	bigCuge := model.NewCubeModel(2)
+	// cube := model.NewCubeModel(1)
+	// bigCuge := model.NewCubeModel(2)
 
 	g.state = WorldState{
-		NewWorldObject(&terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(&cube, orangeShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(&bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
-		NewWorldObject(&cube, blueShader, mgl32.Vec3{0, 3, 0}),
-		NewWorldObject(&bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
+		// NewWorldObject(&terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
+		// NewWorldObject(&cube, orangeShader, mgl32.Vec3{0, 0, 0}),
+		// NewWorldObject(&bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
+		// NewWorldObject(&cube, blueShader, mgl32.Vec3{0, 3, 0}),
+		// NewWorldObject(&bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
 		vampireObject,
 	}
