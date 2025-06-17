@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
-	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -34,11 +33,6 @@ func NewGame() *Game {
 	// simpleShader := gogl.Shader(gogl.NewEmbeddedShader(assets.SimpleVert, assets.SimpleFrag))
 	animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 
-	vampire := model.NewModel("dancing_vampire.dae")
-	vampireAnimation := model.NewAnimation("dancing_vampire.dae", &vampire)
-	vampireAnimator := model.NewAnimator(&vampireAnimation)
-
-	vampireObject := NewAnimatedWorldObject(vampire, vampireAnimator, animatedShader, mgl32.Vec3{0, 0, 0})
 	// cube := model.NewCubeModel(1)
 	// bigCuge := model.NewCubeModel(2)
 
@@ -49,7 +43,7 @@ func NewGame() *Game {
 		// NewWorldObject(&cube, blueShader, mgl32.Vec3{0, 3, 0}),
 		// NewWorldObject(&bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		vampireObject,
+		NewWorldObject("dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 0, 0}),
 	}
 
 	g.playerPos = mgl32.Vec3{}
