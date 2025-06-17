@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
@@ -17,8 +15,6 @@ type Game struct {
 
 	state     WorldState
 	playerPos mgl32.Vec3
-
-	vampireAnimator model.Animator
 }
 
 func NewGame() *Game {
@@ -40,18 +36,9 @@ func NewGame() *Game {
 
 	vampire := model.NewModel("dancing_vampire.dae")
 	vampireAnimation := model.NewAnimation("dancing_vampire.dae", &vampire)
-	g.vampireAnimator = model.NewAnimator(&vampireAnimation)
+	vampireAnimator := model.NewAnimator(&vampireAnimation)
 
-	vampireObject := NewWorldObject(&vampire, animatedShader, mgl32.Vec3{0, 0, 0})
-	// vampireObject.modelMat = vampireObject.modelMat.Mul4(mgl32.Scale3D(0.05, 0.05, 0.05))
-	vampireObject.uniformSetter = func(s shader.Shader) shader.Shader {
-		transforms := g.vampireAnimator.GetFinalBoneMatrices()
-		for i, mat := range transforms {
-			s.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)
-		}
-
-		return s
-	}
+	vampireObject := NewAnimatedWorldObject(vampire, vampireAnimator, animatedShader, mgl32.Vec3{0, 0, 0})
 	// cube := model.NewCubeModel(1)
 	// bigCuge := model.NewCubeModel(2)
 
@@ -85,7 +72,9 @@ func (g *Game) runGame() {
 			return
 		}
 
-		g.vampireAnimator.UpdateAnimation(deltaTime)
+		for _, object := range g.state {
+			object.Update(deltaTime)
+		}
 
 		translationVec := mgl32.Vec3{
 			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),
