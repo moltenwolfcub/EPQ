@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
+	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -22,28 +23,22 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	// orangeShader := gogl.Shader(gogl.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
-	// blueShader := gogl.Shader(gogl.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
-
-	// terrain := model.NewModel("terrain.obj")
-	// assimpModelShader := gogl.Shader(gogl.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
-
-	// simpleAnim := model.NewModel("simpleAnimatedModel.gltf")
-
-	// simpleShader := gogl.Shader(gogl.NewEmbeddedShader(assets.SimpleVert, assets.SimpleFrag))
+	orangeShader := shader.Shader(shader.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+	assimpModelShader := shader.Shader(shader.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 	animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 
-	// cube := model.NewCubeModel(1)
-	// bigCuge := model.NewCubeModel(2)
+	cube := model.NewCubeModel(1)
+	bigCuge := model.NewCubeModel(2)
 
 	g.state = WorldState{
-		// NewWorldObject(&terrain, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		// NewWorldObject(&cube, orangeShader, mgl32.Vec3{0, 0, 0}),
-		// NewWorldObject(&bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
-		// NewWorldObject(&cube, blueShader, mgl32.Vec3{0, 3, 0}),
-		// NewWorldObject(&bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
+		NewWorldObject("terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObjectFromModel(bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
+		NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{0, 3, 0}),
+		NewWorldObjectFromModel(bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		NewWorldObject("dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject("dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 1, 0}),
 	}
 
 	g.playerPos = mgl32.Vec3{}
