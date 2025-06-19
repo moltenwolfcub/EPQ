@@ -3,35 +3,40 @@
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
-layout(location = 3) in ivec4 aBoneIds;
-layout(location = 4) in vec4 aweights;
+layout(location = 3) in int aBoneOffset;
+layout(location = 4) in int aBoneCount;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
 const int MAX_BONES = 100;
-const int MAX_BONES_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
+
+layout(std430, binding = 0) buffer BoneIDBuffer {
+int boneIDs[];
+};
+layout(std430, binding = 1) buffer BoneWeightBuffer {
+float boneWeights[];
+};
 
 out vec2 TexCoord;
 
 void main() {
 	vec4 riggedPos = vec4(0);
-	// vec4 riggedPos = vec4(aPos, 1);
 
-	for(int i = 0; i < MAX_BONES_INFLUENCE; i++) {
-		if(aBoneIds[i] == -1) {
+	for(int i = 0; i < aBoneCount; i++) {
+		int boneIndex = boneIDs[aBoneOffset + i];
+		float weight = boneWeights[aBoneOffset + i];
+		if(boneIndex < 0)
 			continue;
-		}
-		if(aBoneIds[i] >= MAX_BONES) {
+		if(boneIndex >= MAX_BONES) {
 			riggedPos = vec4(aPos, 1);
 			break;
 		}
 
-		vec4 localPos = finalBonesMatrices[aBoneIds[i]] * vec4(aPos, 1);
-		riggedPos += localPos * aweights[i];
-		// vec3 localNormal = mat3(finalBonesMatrices[aBoneIds[i]]) * aNormal;
+		vec4 localPos = finalBonesMatrices[boneIndex] * vec4(aPos, 1);
+		riggedPos += localPos * weight;
 	}
 
 	gl_Position = proj * view * model * riggedPos;

@@ -113,17 +113,55 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	var vertices []Vertex
 	var indices []uint32
 	var textures []Texture
+	var boneIDs []int32
+	var boneWeights []float32
 
 	// vertices
 	meshVertices := unsafe.Slice(mesh.mVertices, mesh.mNumVertices)
 	meshNormals := unsafe.Slice(mesh.mNormals, mesh.mNumVertices)
+	meshBones := unsafe.Slice(mesh.mBones, mesh.mNumBones)
+
+	type BoneInfluence struct {
+		BoneIDs []int32
+		Weights []float32
+	}
+	influences := make([]BoneInfluence, mesh.mNumVertices)
+	if len(meshBones) > 0 {
+		for _, bone := range meshBones {
+			boneId := -1
+			boneName := C.GoString(&bone.mName.data[0])
+
+			info, ok := m.boneInfoMap[boneName]
+			if !ok {
+				newInfo := BoneInfo{
+					Id:     m.boneCounter,
+					Offset: Mat4assimp2mgl(bone.mOffsetMatrix),
+				}
+				m.boneInfoMap[boneName] = newInfo
+				boneId = m.boneCounter
+				m.boneCounter++
+
+			} else {
+				boneId = info.Id
+			}
+
+			boneWeights := unsafe.Slice(bone.mWeights, bone.mNumWeights)
+
+			for _, weight := range boneWeights {
+				vertexID := int(weight.mVertexId)
+				influences[vertexID].BoneIDs = append(influences[vertexID].BoneIDs, int32(boneId))
+				influences[vertexID].Weights = append(influences[vertexID].Weights, float32(weight.mWeight))
+			}
+		}
+	} else {
+		for i := range influences {
+			influences[i].BoneIDs = []int32{-2}
+			influences[i].Weights = []float32{0}
+		}
+	}
+
 	for i := range int(mesh.mNumVertices) {
 		var vertex Vertex
-
-		for i := range max_bone_influence {
-			vertex.BoneIDs[i] = -1
-			vertex.Weights[i] = 0
-		}
 
 		vertex.Position = mgl32.Vec3{
 			float32(meshVertices[i].x),
@@ -149,6 +187,12 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 			vertex.TexCoords = mgl32.Vec2{0, 0}
 		}
 
+		vertex.BoneOffset = int32(len(boneIDs))
+		vertex.BoneCount = int32(len(influences[i].BoneIDs))
+
+		boneIDs = append(boneIDs, influences[i].BoneIDs...)
+		boneWeights = append(boneWeights, influences[i].Weights...)
+
 		vertices = append(vertices, vertex)
 	}
 	//indices
@@ -170,43 +214,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	specularMaps := m.loadMaterialTextures(material, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
-	// bone data
-	meshBones := unsafe.Slice(mesh.mBones, mesh.mNumBones)
-
-	for _, bone := range meshBones {
-		boneId := -1
-		boneName := C.GoString(&bone.mName.data[0])
-
-		info, ok := m.boneInfoMap[boneName]
-		if !ok {
-			newInfo := BoneInfo{
-				Id:     m.boneCounter,
-				Offset: Mat4assimp2mgl(bone.mOffsetMatrix),
-			}
-			m.boneInfoMap[boneName] = newInfo
-			boneId = m.boneCounter
-			m.boneCounter++
-
-		} else {
-			boneId = info.Id
-		}
-
-		meshWeights := unsafe.Slice(bone.mWeights, bone.mNumWeights)
-
-		for _, weight := range meshWeights {
-			vertex := vertices[weight.mVertexId]
-			for i := range max_bone_influence {
-				if vertex.BoneIDs[i] < 0 {
-					vertex.Weights[i] = float32(weight.mWeight)
-					vertex.BoneIDs[i] = int32(boneId)
-					break
-				}
-			}
-			vertices[weight.mVertexId] = vertex
-		}
-	}
-
-	return NewMesh(vertices, indices, textures)
+	return NewMesh(vertices, indices, textures, boneIDs, boneWeights)
 }
 
 func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
@@ -283,8 +291,6 @@ func flipVertical(img image.Image) *image.NRGBA {
 	return flipped
 }
 
-const max_bone_influence int = 4
-
 type BoneInfo struct {
 	Id     int        // index in finalBoneMatricies
 	Offset mgl32.Mat4 // transforms vertex from model to bone space
@@ -295,8 +301,8 @@ type Vertex struct {
 	Normal    mgl32.Vec3
 	TexCoords mgl32.Vec2
 
-	BoneIDs [max_bone_influence]int32
-	Weights [max_bone_influence]float32
+	BoneOffset int32
+	BoneCount  int32
 }
 
 type Texture struct {
@@ -306,17 +312,23 @@ type Texture struct {
 }
 
 type Mesh struct {
-	Vertices      []Vertex
-	Indices       []uint32
-	Textures      []Texture
-	vao, vbo, ebo uint32
+	Vertices       []Vertex
+	Indices        []uint32
+	Textures       []Texture
+	BoneIDs        []int32
+	BoneWeights    []float32
+	vao, vbo, ebo  uint32
+	boneIdSSBO     uint32
+	boneWeightSSBO uint32
 }
 
-func NewMesh(verts []Vertex, indices []uint32, textures []Texture) Mesh {
+func NewMesh(verts []Vertex, indices []uint32, textures []Texture, boneIDs []int32, boneWeights []float32) Mesh {
 	m := Mesh{
-		Vertices: verts,
-		Indices:  indices,
-		Textures: textures,
+		Vertices:    verts,
+		Indices:     indices,
+		Textures:    textures,
+		BoneIDs:     boneIDs,
+		BoneWeights: boneWeights,
 	}
 	m.setupMesh()
 
@@ -353,14 +365,24 @@ func (m *Mesh) setupMesh() {
 	gl.GenVertexArrays(1, &m.vao)
 	gl.GenBuffers(1, &m.vbo)
 	gl.GenBuffers(1, &m.ebo)
+	gl.GenBuffers(1, &m.boneIdSSBO)
+	gl.GenBuffers(1, &m.boneWeightSSBO)
 
 	gl.BindVertexArray(m.vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.vbo)
 
+	gl.BindBuffer(gl.ARRAY_BUFFER, m.vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(m.Vertices)*int(unsafe.Sizeof(Vertex{})), gl.Ptr(m.Vertices), gl.STATIC_DRAW)
 
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(m.Indices)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.Indices), gl.STATIC_DRAW)
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, m.boneIdSSBO)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(m.BoneIDs)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.BoneIDs), gl.STATIC_DRAW)
+	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, m.boneIdSSBO)
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, m.boneWeightSSBO)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(m.BoneWeights)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.BoneWeights), gl.STATIC_DRAW)
+	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, m.boneWeightSSBO)
 
 	// pos
 	gl.EnableVertexAttribArray(0)
@@ -371,13 +393,12 @@ func (m *Mesh) setupMesh() {
 	// texture Coords
 	gl.EnableVertexAttribArray(2)
 	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.TexCoords)))
-	// bone IDs
+	// bone Offset
 	gl.EnableVertexAttribArray(3)
-	gl.VertexAttribIPointer(3, 4, gl.INT, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.BoneIDs)))
-	//TODO: change boneIDs to int[4] rather than an ivec4 because it is slightly missleading
-	// weights
+	gl.VertexAttribIPointer(3, 1, gl.INT, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.BoneOffset)))
+	// bone Count
 	gl.EnableVertexAttribArray(4)
-	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.Weights)))
+	gl.VertexAttribIPointer(4, 1, gl.INT, int32(unsafe.Sizeof(Vertex{})), gl.Ptr(unsafe.Offsetof(Vertex{}.BoneCount)))
 
 	gl.BindVertexArray(0)
 }

@@ -60,6 +60,6 @@ func NewCubeModel(size float32) Model {
 	}
 	textures := []Texture{}
 
-	m.Meshes = []Mesh{NewMesh(verts, indices, textures)}
+	m.Meshes = []Mesh{NewMesh(verts, indices, textures, []int32{-3}, []float32{0})}
 	return m
 }
