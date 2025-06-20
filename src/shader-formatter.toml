@@ -1,0 +1,4 @@
+Indentation = "Tab"
+NewLineOnOpenBrace = "After"
+MaxEmptyLines = 1
+SpacesInBrackets = false

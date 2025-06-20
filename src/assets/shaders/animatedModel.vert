@@ -14,10 +14,10 @@ const int MAX_BONES = 100;
 uniform mat4 finalBonesMatrices[MAX_BONES];
 
 layout(std430, binding = 0) buffer BoneIDBuffer {
-int boneIDs[];
+	int boneIDs[];
 };
 layout(std430, binding = 1) buffer BoneWeightBuffer {
-float boneWeights[];
+	float boneWeights[];
 };
 
 out vec2 TexCoord;
@@ -28,8 +28,9 @@ void main() {
 	for(int i = 0; i < aBoneCount; i++) {
 		int boneIndex = boneIDs[aBoneOffset + i];
 		float weight = boneWeights[aBoneOffset + i];
-		if(boneIndex < 0)
+		if(boneIndex < 0) {
 			continue;
+		}
 		if(boneIndex >= MAX_BONES) {
 			riggedPos = vec4(aPos, 1);
 			break;
