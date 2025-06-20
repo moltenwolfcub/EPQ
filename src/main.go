@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
+	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -22,18 +23,18 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	// orangeShader := shader.Shader(shader.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
+	orangeShader := shader.Shader(shader.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
 	// blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 	// assimpModelShader := shader.Shader(shader.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 	// animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 	lightingShader := shader.Shader(shader.NewEmbeddedShader(assets.LightingVert, assets.LightingFrag))
 
-	// cube := model.NewCubeModel(1)
+	cube := model.NewCubeModel(0.5)
 	// bigCuge := model.NewCubeModel(2)
 
 	g.state = WorldState{
 		// NewWorldObject("terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		// NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{-2, 5, -2}),
 		// NewWorldObjectFromModel(bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
 		// NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{0, 5, 0}),
 		// NewWorldObjectFromModel(bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),

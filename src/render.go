@@ -79,7 +79,7 @@ func (r *Renderer) Draw(playerPos mgl32.Vec3, world WorldState) {
 	proj, view := r.camera.GetMatricies()
 
 	for _, obj := range world {
-		obj.Draw(proj, view)
+		obj.Draw(proj, view, r.camera.Pos)
 	}
 
 	r.window.GLSwap()

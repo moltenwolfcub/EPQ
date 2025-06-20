@@ -48,13 +48,14 @@ func (o *WorldObject) Update(deltaTime float32) {
 	o.animator.UpdateAnimation(deltaTime)
 }
 
-func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4) {
+func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.CheckShadersForChanges()
 	o.shader.Use()
 
 	o.shader.SetMatrix4("proj", proj)
 	o.shader.SetMatrix4("view", view)
 	o.shader.SetMatrix4("model", o.modelMat)
+	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
 
 	if o.hasAnimation {
 		transforms := o.animator.GetFinalBoneMatrices()
