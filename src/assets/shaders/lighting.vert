@@ -21,8 +21,10 @@ layout(std430, binding = 1) buffer BoneWeightBuffer {
 };
 
 out vec3 normal;
+out vec3 fragPos;
 
 void main() {
 	gl_Position = proj * view * model * vec4(aPos, 1.0);
-	normal = aNormal;
+	normal = mat3(transpose(inverse(model))) * aNormal;
+	fragPos = vec3(model*vec4(aPos,1.0));
 }
