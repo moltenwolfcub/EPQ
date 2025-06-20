@@ -356,6 +356,9 @@ func (m Mesh) Draw(shader shader.Shader) {
 	}
 	gl.ActiveTexture(gl.TEXTURE0)
 
+	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, m.boneIdSSBO)
+	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, m.boneWeightSSBO)
+
 	gl.BindVertexArray(m.vao)
 	gl.DrawElements(gl.TRIANGLES, int32(len(m.Indices)), gl.UNSIGNED_INT, gl.Ptr(uintptr(0)))
 	gl.BindVertexArray(0)
@@ -378,11 +381,9 @@ func (m *Mesh) setupMesh() {
 
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, m.boneIdSSBO)
 	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(m.BoneIDs)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.BoneIDs), gl.STATIC_DRAW)
-	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, m.boneIdSSBO)
 
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, m.boneWeightSSBO)
 	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(m.BoneWeights)*int(unsafe.Sizeof(uint32(0))), gl.Ptr(m.BoneWeights), gl.STATIC_DRAW)
-	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, m.boneWeightSSBO)
 
 	// pos
 	gl.EnableVertexAttribArray(0)
