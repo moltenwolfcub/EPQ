@@ -57,6 +57,12 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.SetMatrix4("model", o.modelMat)
 	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
 
+	//TMP
+	o.shader.SetVec3("material.ambient", mgl32.Vec3{0.25, 0.25, 0.25})
+	o.shader.SetVec3("material.diffuse", mgl32.Vec3{0.4, 0.4, 0.4})
+	o.shader.SetVec3("material.specular", mgl32.Vec3{0.774597, 0.774597, 0.774597})
+	o.shader.SetFloat("material.shininess", 0.6*128)
+
 	if o.hasAnimation {
 		transforms := o.animator.GetFinalBoneMatrices()
 		for i, mat := range transforms {
