@@ -43,6 +43,37 @@ func Lerp(x mgl32.Vec3, y mgl32.Vec3, a float32) mgl32.Vec3 {
 	return x.Mul(1 - a).Add(y.Mul(a))
 }
 
+func getMaterialColorOrDefault(mat *C.struct_aiMaterial, colorKey string, defaultCol mgl32.Vec3) mgl32.Vec3 {
+	var rawColor C.struct_aiColor4D
+	key := C.CString(colorKey)
+	defer C.free(unsafe.Pointer(key))
+	ok := C.aiGetMaterialColor(mat, key, 0, 0, &rawColor)
+
+	if ok == C.AI_SUCCESS {
+		color := mgl32.Vec3{
+			float32(rawColor.r),
+			float32(rawColor.g),
+			float32(rawColor.b),
+		}
+		return color
+	} else {
+		return defaultCol
+	}
+}
+
+func getMaterialFloatOrDefault(mat *C.struct_aiMaterial, valKey string, defaultVal float32) float32 {
+	var rawFloat C.float
+	key := C.CString(valKey)
+	defer C.free(unsafe.Pointer(key))
+	ok := C.aiGetMaterialFloat(mat, key, 0, 0, &rawFloat)
+
+	if ok == C.AI_SUCCESS {
+		return float32(rawFloat)
+	} else {
+		return defaultVal
+	}
+}
+
 type Model struct {
 	Meshes           []Mesh
 	textureDirectory string
@@ -206,15 +237,24 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 
 	//material
 	sceneMaterials := unsafe.Slice(scene.mMaterials, scene.mNumMaterials)
-	material := sceneMaterials[mesh.mMaterialIndex]
+	modelMaterial := sceneMaterials[mesh.mMaterialIndex]
 
-	diffuseMaps := m.loadMaterialTextures(material, C.aiTextureType_DIFFUSE, "texture_diffuse")
+	//-textures
+	diffuseMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_DIFFUSE, "texture_diffuse")
 	textures = append(textures, diffuseMaps...)
 
-	specularMaps := m.loadMaterialTextures(material, C.aiTextureType_SPECULAR, "texture_specular")
+	specularMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
-	return NewMesh(vertices, indices, textures, boneIDs, boneWeights)
+	//-rawMaterial
+	material := Material{
+		Ambient:   getMaterialColorOrDefault(modelMaterial, "$clr.ambient", mgl32.Vec3{-1, -1, -1}),
+		Diffuse:   getMaterialColorOrDefault(modelMaterial, "$clr.diffuse", mgl32.Vec3{-1, -1, -1}),
+		Specular:  getMaterialColorOrDefault(modelMaterial, "$clr.specular", mgl32.Vec3{-1, -1, -1}),
+		Shininess: getMaterialFloatOrDefault(modelMaterial, "$mat.shininess", -1),
+	}
+
+	return NewMesh(vertices, indices, textures, material, boneIDs, boneWeights)
 }
 
 func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.enum_aiTextureType, typeName string) []Texture {
@@ -311,10 +351,18 @@ type Texture struct {
 	Path        string
 }
 
+type Material struct {
+	Ambient   mgl32.Vec3
+	Diffuse   mgl32.Vec3
+	Specular  mgl32.Vec3
+	Shininess float32
+}
+
 type Mesh struct {
 	Vertices       []Vertex
 	Indices        []uint32
 	Textures       []Texture
+	Material       Material
 	BoneIDs        []int32
 	BoneWeights    []float32
 	vao, vbo, ebo  uint32
@@ -322,11 +370,12 @@ type Mesh struct {
 	boneWeightSSBO uint32
 }
 
-func NewMesh(verts []Vertex, indices []uint32, textures []Texture, boneIDs []int32, boneWeights []float32) Mesh {
+func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Material, boneIDs []int32, boneWeights []float32) Mesh {
 	m := Mesh{
 		Vertices:    verts,
 		Indices:     indices,
 		Textures:    textures,
+		Material:    material,
 		BoneIDs:     boneIDs,
 		BoneWeights: boneWeights,
 	}
@@ -355,6 +404,11 @@ func (m Mesh) Draw(shader shader.Shader) {
 		gl.BindTexture(gl.TEXTURE_2D, m.Textures[i].Id)
 	}
 	gl.ActiveTexture(gl.TEXTURE0)
+
+	shader.SetVec3("material.ambient", m.Material.Ambient)
+	shader.SetVec3("material.diffuse", m.Material.Diffuse)
+	shader.SetVec3("material.specular", m.Material.Specular)
+	shader.SetFloat("material.shininess", m.Material.Shininess)
 
 	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, m.boneIdSSBO)
 	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, m.boneWeightSSBO)

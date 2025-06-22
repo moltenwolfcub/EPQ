@@ -59,7 +59,8 @@ func NewCubeModel(size float32) Model {
 		21, 23, 22,
 	}
 	textures := []Texture{}
+	material := Material{}
 
-	m.Meshes = []Mesh{NewMesh(verts, indices, textures, []int32{-3}, []float32{0})}
+	m.Meshes = []Mesh{NewMesh(verts, indices, textures, material, []int32{-3}, []float32{0})}
 	return m
 }
