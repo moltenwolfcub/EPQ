@@ -392,12 +392,13 @@ func (m Mesh) Draw(shader shader.Shader) {
 		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
 		var number string
 		name := tex.TextureType
-		if name == "texture_diffuse" {
+		switch name {
+		case "texture_diffuse":
 			number = fmt.Sprintf("%d", diffuseNr)
 			diffuseNr++
-		} else if name == "texture_specular" {
+		case "texture_specular":
 			number = fmt.Sprintf("%d", specularNr)
-			diffuseNr++
+			specularNr++
 		}
 
 		shader.SetInt("material."+name+number, int32(i))
