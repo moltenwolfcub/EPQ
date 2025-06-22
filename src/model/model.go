@@ -246,6 +246,9 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 	specularMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
+	roughnessMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_SHININESS, "texture_roughness")
+	textures = append(textures, roughnessMaps...)
+
 	//-rawMaterial
 	material := Material{
 		Diffuse:   getMaterialColorOrDefault(modelMaterial, "$clr.diffuse", mgl32.Vec3{-1, -1, -1}),
@@ -385,6 +388,7 @@ func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Mate
 func (m Mesh) Draw(shader shader.Shader) {
 	diffuseNr := 1
 	specularNr := 1
+	roughnessNr := 1
 
 	for i, tex := range m.Textures {
 		gl.ActiveTexture(gl.TEXTURE0 + uint32(i))
@@ -397,6 +401,9 @@ func (m Mesh) Draw(shader shader.Shader) {
 		case "texture_specular":
 			number = fmt.Sprintf("%d", specularNr)
 			specularNr++
+		case "texture_roughness":
+			number = fmt.Sprintf("%d", roughnessNr)
+			roughnessNr++
 		}
 
 		shader.SetInt("material."+name+number, int32(i))
@@ -406,6 +413,7 @@ func (m Mesh) Draw(shader shader.Shader) {
 
 	shader.SetBool("material.hasTexDiffuse", diffuseNr > 1)
 	shader.SetBool("material.hasTexSpecular", specularNr > 1)
+	shader.SetBool("material.hasTexRoughness", roughnessNr > 1)
 
 	shader.SetVec3("material.diffuse", m.Material.Diffuse)
 	shader.SetVec3("material.specular", m.Material.Specular)
