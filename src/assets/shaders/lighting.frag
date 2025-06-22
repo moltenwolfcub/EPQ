@@ -13,6 +13,8 @@ struct Material {
 
 	sampler2D texture_diffuse1;
 	bool hasTexDiffuse;
+	sampler2D texture_specular1;
+	bool hasTexSpecular;
 };
 uniform Material material;
 
@@ -33,6 +35,11 @@ void main() {
 		diffuseColor = texture(material.texture_diffuse1, texCoord).rgb;
 	}
 
+	vec3 specularColor = material.specular;
+	if(material.hasTexSpecular) {
+		specularColor = texture(material.texture_specular1, texCoord).rgb;
+	}
+
 	vec3 norm = normalize(normal);
 	vec3 lightDir = normalize(light.pos - fragPos);
 
@@ -46,7 +53,7 @@ void main() {
 		vec3 viewDir = normalize(camera - fragPos);
 		vec3 reflectDir = reflect(-lightDir, norm);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-		specular = light.specular * spec * material.specular;
+		specular = light.specular * spec * specularColor;
 	}
 
 	vec3 result = ambient + diffuse + specular;
