@@ -72,7 +72,8 @@ func (r *Renderer) alignCamera(focus mgl32.Vec3) {
 }
 
 func (r *Renderer) Draw(playerPos mgl32.Vec3, world WorldState) {
-	gl.ClearColor(0.0, 0.2, 0.3, 0.0)
+	// gl.ClearColor(0.0, 0.2, 0.3, 0.0)
+	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	r.alignCamera(playerPos)
