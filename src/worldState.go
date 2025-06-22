@@ -57,12 +57,6 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.SetMatrix4("model", o.modelMat)
 	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
 
-	//TMP
-	// o.shader.SetVec3("material.ambient", mgl32.Vec3{0.25, 0.25, 0.25})
-	// o.shader.SetVec3("material.diffuse", mgl32.Vec3{0.4, 0.4, 0.4})
-	// o.shader.SetVec3("material.specular", mgl32.Vec3{0.774597, 0.774597, 0.774597})
-	// o.shader.SetFloat("material.shininess", 0.6*128)
-
 	o.shader.SetVec3("light.pos", mgl32.Vec3{-2, 5, -2})
 	o.shader.SetVec3("light.ambient", mgl32.Vec3{0.2, 0.2, 0.2})
 	o.shader.SetVec3("light.diffuse", mgl32.Vec3{1, 1, 1})

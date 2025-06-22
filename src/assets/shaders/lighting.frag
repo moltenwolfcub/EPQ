@@ -6,7 +6,6 @@ in vec3 fragPos;
 uniform vec3 camera;
 
 struct Material {
-	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 	float shininess;
@@ -28,7 +27,7 @@ void main() {
 	vec3 norm = normalize(normal);
 	vec3 lightDir = normalize(light.pos - fragPos);
 
-	vec3 ambient = light.ambient * material.ambient;
+	vec3 ambient = light.ambient * material.diffuse;
 
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = light.diffuse * diff * material.diffuse;

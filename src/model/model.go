@@ -248,8 +248,6 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh
 
 	//-rawMaterial
 	material := Material{
-		// Ambient:   getMaterialColorOrDefault(modelMaterial, "$clr.ambient", mgl32.Vec3{-1, -1, -1}),
-		Ambient:   mgl32.Vec3{0.01, 0.01, 0.01}, // Ka in mtl files is metallic not ambient so fixed low value
 		Diffuse:   getMaterialColorOrDefault(modelMaterial, "$clr.diffuse", mgl32.Vec3{-1, -1, -1}),
 		Specular:  getMaterialColorOrDefault(modelMaterial, "$clr.specular", mgl32.Vec3{-1, -1, -1}),
 		Shininess: getMaterialFloatOrDefault(modelMaterial, "$mat.shininess", -1),
@@ -353,7 +351,6 @@ type Texture struct {
 }
 
 type Material struct {
-	Ambient   mgl32.Vec3
 	Diffuse   mgl32.Vec3
 	Specular  mgl32.Vec3
 	Shininess float32
@@ -407,7 +404,6 @@ func (m Mesh) Draw(shader shader.Shader) {
 	}
 	gl.ActiveTexture(gl.TEXTURE0)
 
-	shader.SetVec3("material.ambient", m.Material.Ambient)
 	shader.SetVec3("material.diffuse", m.Material.Diffuse)
 	shader.SetVec3("material.specular", m.Material.Specular)
 	shader.SetFloat("material.shininess", m.Material.Shininess)
