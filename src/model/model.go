@@ -404,6 +404,8 @@ func (m Mesh) Draw(shader shader.Shader) {
 	}
 	gl.ActiveTexture(gl.TEXTURE0)
 
+	shader.SetBool("material.hasTexDiffuse", diffuseNr > 1)
+
 	shader.SetVec3("material.diffuse", m.Material.Diffuse)
 	shader.SetVec3("material.specular", m.Material.Specular)
 	shader.SetFloat("material.shininess", m.Material.Shininess)

@@ -2,6 +2,7 @@
 
 in vec3 normal;
 in vec3 fragPos;
+in vec2 texCoord;
 
 uniform vec3 camera;
 
@@ -9,6 +10,9 @@ struct Material {
 	vec3 diffuse;
 	vec3 specular;
 	float shininess;
+
+	sampler2D texture_diffuse1;
+	bool hasTexDiffuse;
 };
 uniform Material material;
 
@@ -24,13 +28,18 @@ uniform Light light;
 out vec4 FragColor;
 
 void main() {
+	vec3 diffuseColor = material.diffuse;
+	if(material.hasTexDiffuse) {
+		diffuseColor = texture(material.texture_diffuse1, texCoord).rgb;
+	}
+
 	vec3 norm = normalize(normal);
 	vec3 lightDir = normalize(light.pos - fragPos);
 
-	vec3 ambient = light.ambient * material.diffuse;
+	vec3 ambient = light.ambient * diffuseColor;
 
 	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = light.diffuse * diff * material.diffuse;
+	vec3 diffuse = light.diffuse * diff * diffuseColor;
 
 	vec3 specular = vec3(0);
 	if (material.shininess != 0) {
