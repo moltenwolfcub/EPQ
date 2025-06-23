@@ -531,7 +531,7 @@ type AssimpNodeData struct {
 type Animation struct {
 	duration       float32
 	ticksPerSecond int
-	bones          []Bone
+	bones          map[string]*Bone
 	rootNode       AssimpNodeData
 	boneInfoMap    map[string]BoneInfo
 }
@@ -554,6 +554,7 @@ func NewAnimation(animationPath string, model *Model) Animation {
 	}
 
 	a := Animation{
+		bones:       make(map[string]*Bone),
 		boneInfoMap: make(map[string]BoneInfo),
 	}
 
@@ -569,10 +570,9 @@ func NewAnimation(animationPath string, model *Model) Animation {
 }
 
 func (a Animation) FindBone(name string) *Bone {
-	for _, bone := range a.bones {
-		if bone.name == name {
-			return &bone
-		}
+	bone, ok := a.bones[name]
+	if ok {
+		return bone
 	}
 	return nil
 }
@@ -605,7 +605,7 @@ func (a *Animation) readMissingBones(animation *C.struct_aiAnimation, model *Mod
 			}
 			boneCount++
 		}
-		a.bones = append(a.bones, NewBone(boneName /*,boneInfoMap[boneName].Id*/, channel))
+		a.bones[boneName] = NewBone(boneName, channel)
 	}
 	a.boneInfoMap = boneInfoMap
 }
@@ -631,7 +631,7 @@ type Bone struct {
 	name           string
 }
 
-func NewBone(name string, channel *C.struct_aiNodeAnim) Bone {
+func NewBone(name string, channel *C.struct_aiNodeAnim) *Bone {
 	b := Bone{
 		name:           name,
 		localTransform: mgl32.Ident4(),
@@ -679,7 +679,7 @@ func NewBone(name string, channel *C.struct_aiNodeAnim) Bone {
 		b.scales = append(b.scales, data)
 	}
 
-	return b
+	return &b
 }
 
 func (b *Bone) Update(animationTime float32) {
