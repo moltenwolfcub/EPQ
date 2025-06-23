@@ -46,23 +46,45 @@ func (s *WorldState) BindLights() {
 
 	internalLights := []internalLight{}
 	for _, light := range s.Lights {
-		internalLights = append(internalLights, internalLight{
-			lightType: int32(light.LightType),
+		var il internalLight
 
-			pos: light.Pos,
-			dir: light.Dir,
+		switch l := light.(type) {
+		case PointLight:
+			il = internalLight{
+				lightType: 0,
+				pos:       l.Pos,
+				ambient:   l.Ambient,
+				diffuse:   l.Diffuse,
+				specular:  l.Specular,
+				constant:  l.ConstantAttenuation,
+				linear:    l.LinearAttenuation,
+				quadratic: l.QuadraticAttenuation,
+			}
+		case DirLight:
+			il = internalLight{
+				lightType: 1,
+				dir:       l.Dir,
+				ambient:   l.Ambient,
+				diffuse:   l.Diffuse,
+				specular:  l.Specular,
+			}
+		case SpotLight:
+			il = internalLight{
+				lightType:   2,
+				pos:         l.Pos,
+				dir:         l.Dir,
+				ambient:     l.Ambient,
+				diffuse:     l.Diffuse,
+				specular:    l.Specular,
+				constant:    l.ConstantAttenuation,
+				linear:      l.LinearAttenuation,
+				quadratic:   l.QuadraticAttenuation,
+				cutoff:      l.cutoff,
+				outerCutoff: l.outerCutoff,
+			}
+		}
 
-			ambient:  light.Ambient,
-			diffuse:  light.Diffuse,
-			specular: light.Specular,
-
-			constant:  light.ConstantAttenuation,
-			linear:    light.LinearAttenuation,
-			quadratic: light.QuadraticAttenuation,
-
-			cutoff:      light.cutoff,
-			outerCutoff: light.outerCutoff,
-		})
+		internalLights = append(internalLights, il)
 	}
 
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, s.lightingSSBO)
@@ -135,9 +157,39 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.model.Draw(o.shader)
 }
 
-type Light struct {
-	LightType int
+type Light interface {
+	GetLightComponents() (mgl32.Vec3, mgl32.Vec3, mgl32.Vec3)
+}
 
+type PointLight struct {
+	Pos mgl32.Vec3
+
+	Ambient  mgl32.Vec3
+	Diffuse  mgl32.Vec3
+	Specular mgl32.Vec3
+
+	ConstantAttenuation  float32
+	LinearAttenuation    float32
+	QuadraticAttenuation float32
+}
+
+func (p PointLight) GetLightComponents() (mgl32.Vec3, mgl32.Vec3, mgl32.Vec3) {
+	return p.Ambient, p.Diffuse, p.Specular
+}
+
+type DirLight struct {
+	Dir mgl32.Vec3
+
+	Ambient  mgl32.Vec3
+	Diffuse  mgl32.Vec3
+	Specular mgl32.Vec3
+}
+
+func (d DirLight) GetLightComponents() (mgl32.Vec3, mgl32.Vec3, mgl32.Vec3) {
+	return d.Ambient, d.Diffuse, d.Specular
+}
+
+type SpotLight struct {
 	Pos mgl32.Vec3
 	Dir mgl32.Vec3
 
@@ -151,4 +203,8 @@ type Light struct {
 
 	cutoff      float32
 	outerCutoff float32
+}
+
+func (s SpotLight) GetLightComponents() (mgl32.Vec3, mgl32.Vec3, mgl32.Vec3) {
+	return s.Ambient, s.Diffuse, s.Specular
 }
