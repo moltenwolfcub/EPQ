@@ -57,10 +57,13 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.SetMatrix4("model", o.modelMat)
 	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
 
-	o.shader.SetVec3("light.pos", mgl32.Vec3{-2, 5, -2})
-	o.shader.SetVec3("light.ambient", mgl32.Vec3{0.2, 0.2, 0.2})
-	o.shader.SetVec3("light.diffuse", mgl32.Vec3{1, 1, 1})
-	o.shader.SetVec3("light.specular", mgl32.Vec3{1, 1, 1})
+	o.shader.SetVec3("foo.pos", mgl32.Vec3{-2, 5, -2})
+	o.shader.SetVec3("foo.ambient", mgl32.Vec3{0.1, 0.1, 0.1})
+	o.shader.SetVec3("foo.diffuse", mgl32.Vec3{1, 1, 1})
+	o.shader.SetVec3("foo.specular", mgl32.Vec3{1, 1, 1})
+	o.shader.SetFloat("foo.constant", 1.0)
+	o.shader.SetFloat("foo.linear", 0.09)
+	o.shader.SetFloat("foo.quadratic", 0.032)
 
 	if o.hasAnimation {
 		transforms := o.animator.GetFinalBoneMatrices()

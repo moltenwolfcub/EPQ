@@ -1,10 +1,7 @@
 #version 460 core
 
-in vec3 normal;
-in vec3 fragPos;
-in vec2 texCoord;
-
-uniform vec3 camera;
+const int POINT = 0;
+const int DIRECTION = 1;
 
 struct Material {
 	vec3 diffuse;
@@ -18,18 +15,54 @@ struct Material {
 	sampler2D texture_roughness1;
 	bool hasTexRoughness;
 };
-uniform Material material;
-
 struct Light {
+	// int lightType;
+
 	vec3 pos;
+	// vec3 direction;
 
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+
+	float constant;
+	float linear;
+	float quadratic;
 };
-uniform Light light;
+
+in vec3 normal;
+in vec3 fragPos;
+in vec2 texCoord;
+
+uniform vec3 camera;
+uniform Material material;
+uniform Light foo;
 
 out vec4 FragColor;
+
+vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+	vec3 lightDir = normalize(light.pos - fragPos);
+
+	float diff = max(dot(normal, lightDir), 0.0);
+
+	float spec = 0;
+	if (shininess != 0) {
+		vec3 reflectDir = reflect(-lightDir, normal);
+		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+	}
+
+	float dist = length(light.pos - fragPos);
+	float attenuation = 1/(light.constant + light.linear*dist + light.quadratic*dist*dist);
+
+	vec3 ambient = light.ambient * diffuseColor;
+	vec3 diffuse = light.diffuse * diffuseColor * diff;
+	vec3 specular = light.specular * specularColor * spec;
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+
+	return ambient + diffuse + specular;
+}
 
 void main() {
 	vec3 diffuseColor = material.diffuse;
@@ -49,22 +82,9 @@ void main() {
 	}
 
 	vec3 norm = normalize(normal);
-	vec3 lightDir = normalize(light.pos - fragPos);
+	vec3 viewDir = normalize(camera - fragPos);
 
-	vec3 ambient = light.ambient * diffuseColor;
-
-	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = light.diffuse * diff * diffuseColor;
-
-	vec3 specular = vec3(0);
-	if (shininessValue != 0) {
-		vec3 viewDir = normalize(camera - fragPos);
-		vec3 reflectDir = reflect(-lightDir, norm);
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininessValue);
-		specular = light.specular * spec * specularColor;
-	}
-
-	vec3 result = ambient + diffuse + specular;
+	vec3 result = CalcPointLight(foo, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
 
 	FragColor = vec4(result, 1.0);
 
