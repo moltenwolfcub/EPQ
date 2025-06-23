@@ -142,7 +142,7 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 }
 
 func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mesh {
-	var vertices []Vertex
+	var vertices []Vertex = make([]Vertex, mesh.mNumVertices)
 	var indices []uint32
 	var textures []Texture
 	var boneIDs []int32
@@ -225,7 +225,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mes
 		boneIDs = append(boneIDs, influences[i].BoneIDs...)
 		boneWeights = append(boneWeights, influences[i].Weights...)
 
-		vertices = append(vertices, vertex)
+		vertices[i] = vertex
 	}
 	//indices
 	meshFaces := unsafe.Slice(mesh.mFaces, mesh.mNumFaces)
