@@ -31,6 +31,7 @@ struct Light {
 	float quadratic;
 
 	float cutoff;
+	float outerCutoff;
 };
 
 in vec3 normal;
@@ -92,16 +93,15 @@ vec3 CalcSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 di
 	vec3 lightDir = normalize(light.pos - fragPos);
 
 	float theta = dot(lightDir, normalize(-light.direction));
+	float epsilon = light.cutoff - light.outerCutoff;
+	float intensity = smoothstep(0.0, 1.0, (theta - light.outerCutoff) / epsilon);
 
-	float diff = 0;
+	float diff = max(dot(normal, lightDir), 0.0);
+
 	float spec = 0;
-	if (theta > light.cutoff) {
-		diff = max(dot(normal, lightDir), 0.0);
-
-		if (shininess != 0) {
-			vec3 reflectDir = reflect(-lightDir, normal);
-			spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-		}
+	if (shininess != 0) {
+		vec3 reflectDir = reflect(-lightDir, normal);
+		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 	}
 
 	float dist = length(light.pos - fragPos);
@@ -113,6 +113,9 @@ vec3 CalcSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 di
 	ambient *= attenuation;
 	diffuse *= attenuation;
 	specular *= attenuation;
+
+	diffuse *= intensity;
+	specular *= intensity;
 
 	return ambient + diffuse + specular;
 }

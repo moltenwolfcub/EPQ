@@ -28,24 +28,24 @@ func NewWorldState() *WorldState {
 func (s *WorldState) BindLights() {
 	//padding because vec3s need to be aligned to 16 bytes in SSBOS
 	type internalLight struct {
-		lightType int32
-		_pad6     float32
-		_pad7     float32
-		_pad8     float32
-		pos       [3]float32
-		_pad1     float32
-		dir       [3]float32
-		_pad9     float32
-		ambient   [3]float32
-		_pad2     float32
-		diffuse   [3]float32
-		_pad3     float32
-		specular  [3]float32
-		constant  float32
-		linear    float32
-		quadratic float32
-		cutoff    float32
-		_pad5     float32
+		lightType   int32
+		_pad6       float32
+		_pad7       float32
+		_pad8       float32
+		pos         [3]float32
+		_pad1       float32
+		dir         [3]float32
+		_pad9       float32
+		ambient     [3]float32
+		_pad2       float32
+		diffuse     [3]float32
+		_pad3       float32
+		specular    [3]float32
+		constant    float32
+		linear      float32
+		quadratic   float32
+		cutoff      float32
+		outerCutoff float32
 	}
 
 	internalLights := []internalLight{}
@@ -64,7 +64,8 @@ func (s *WorldState) BindLights() {
 			linear:    light.LinearAttenuation,
 			quadratic: light.QuadraticAttenuation,
 
-			cutoff: light.cutoff,
+			cutoff:      light.cutoff,
+			outerCutoff: light.outerCutoff,
 		})
 	}
 
@@ -152,5 +153,6 @@ type Light struct {
 	LinearAttenuation    float32
 	QuadraticAttenuation float32
 
-	cutoff float32
+	cutoff      float32
+	outerCutoff float32
 }
