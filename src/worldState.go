@@ -28,14 +28,10 @@ func NewWorldState() *WorldState {
 func (s *WorldState) BindLights() {
 	//padding because vec3s need to be aligned to 16 bytes in SSBOS
 	type internalLight struct {
-		lightType   int32
-		_pad6       float32
-		_pad7       float32
-		_pad8       float32
 		pos         [3]float32
 		_pad1       float32
 		dir         [3]float32
-		_pad9       float32
+		lightType   int32
 		ambient     [3]float32
 		_pad2       float32
 		diffuse     [3]float32

@@ -17,10 +17,10 @@ struct Material {
 	bool hasTexRoughness;
 };
 struct Light {
-	int lightType;
-
 	vec3 pos;
 	vec3 direction;
+
+	int lightType;
 
 	vec3 ambient;
 	vec3 diffuse;
