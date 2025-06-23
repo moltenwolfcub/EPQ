@@ -47,7 +47,7 @@ layout(std430, binding = 2) buffer LightBuffer {
 
 out vec4 FragColor;
 
-vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+vec3 CalcPointLight(Light light, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
 	vec3 lightDir = normalize(light.pos - fragPos);
 
 	float diff = max(dot(normal, lightDir), 0.0);
@@ -68,7 +68,7 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 d
 	return ambient + diffuse + specular;
 }
 
-vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+vec3 CalcDirLight(Light light, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
 	vec3 lightDir = normalize(-light.direction);
 
 	float diff = max(dot(normal, lightDir), 0.0);
@@ -83,7 +83,7 @@ vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec
 	return ambient + diffuse + specular;
 }
 
-vec3 CalcSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+vec3 CalcSpotLight(Light light, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
 	vec3 lightDir = normalize(light.pos - fragPos);
 
 	float theta = dot(lightDir, normalize(-light.direction));
@@ -141,11 +141,11 @@ void main() {
 	for (int i = 0; i < lights.length(); i++) {
 		Light l = lights[i];
 		if (l.lightType == POINT) {
-			result += CalcPointLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+			result += CalcPointLight(l, viewDir, diffuseColor, specularColor, shininessValue);
 		} else if (l.lightType == DIRECTION) {
-			result += CalcDirLight(l, norm, viewDir, diffuseColor, specularColor, shininessValue);
+			result += CalcDirLight(l, viewDir, diffuseColor, specularColor, shininessValue);
 		} else if (l.lightType == SPOT) {
-			result += CalcSpotLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+			result += CalcSpotLight(l, viewDir, diffuseColor, specularColor, shininessValue);
 		} else {
 			continue;
 		}
