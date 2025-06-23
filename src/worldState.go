@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"unsafe"
 
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
@@ -10,6 +12,53 @@ import (
 
 type WorldState struct {
 	Objects []*WorldObject
+	Lights  []Light
+
+	lightingSSBO uint32
+}
+
+func NewWorldState() *WorldState {
+	state := &WorldState{}
+
+	gl.GenBuffers(1, &state.lightingSSBO)
+
+	return state
+}
+
+func (s *WorldState) BindLights() {
+	//padding because vec3s need to be aligned to 16 bytes in SSBOS
+	type internalLight struct {
+		pos       [3]float32
+		_pad1     float32
+		ambient   [3]float32
+		_pad2     float32
+		diffuse   [3]float32
+		_pad3     float32
+		specular  [3]float32
+		_pad4     float32
+		constant  float32
+		linear    float32
+		quadratic float32
+		_pad5     float32
+	}
+
+	internalLights := []internalLight{}
+	for _, light := range s.Lights {
+		internalLights = append(internalLights, internalLight{
+			pos: light.Pos,
+
+			ambient:  light.Ambient,
+			diffuse:  light.Diffuse,
+			specular: light.Specular,
+
+			constant:  light.ConstantAttenuation,
+			linear:    light.LinearAttenuation,
+			quadratic: light.QuadraticAttenuation,
+		})
+	}
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, s.lightingSSBO)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(internalLights)*int(unsafe.Sizeof(internalLight{})), gl.Ptr(internalLights), gl.STATIC_DRAW)
 }
 
 type WorldObject struct {
@@ -63,29 +112,11 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.SetMatrix4("model", o.modelMat)
 	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
 
-	o.shader.SetVec3("lights[0].pos", mgl32.Vec3{-2, 5, -2})
-	o.shader.SetVec3("lights[0].ambient", mgl32.Vec3{0.1, 0.1, 0.1})
-	o.shader.SetVec3("lights[0].diffuse", mgl32.Vec3{0.3, 0.5, 1})
-	o.shader.SetVec3("lights[0].specular", mgl32.Vec3{0.5, 0.7, 1})
-	o.shader.SetFloat("lights[0].constant", 1.0)
-	o.shader.SetFloat("lights[0].linear", 0.09)
-	o.shader.SetFloat("lights[0].quadratic", 0.032)
-
-	o.shader.SetVec3("lights[1].pos", mgl32.Vec3{0, 0, 3})
-	o.shader.SetVec3("lights[1].ambient", mgl32.Vec3{0.1, 0.05, 0})
-	o.shader.SetVec3("lights[1].diffuse", mgl32.Vec3{1, 0.5, 0.2})
-	o.shader.SetVec3("lights[1].specular", mgl32.Vec3{1, 0.5, 0.2})
-	o.shader.SetFloat("lights[1].constant", 1.0)
-	o.shader.SetFloat("lights[1].linear", 0.045)
-	o.shader.SetFloat("lights[1].quadratic", 0.0075)
-
-	o.shader.SetVec3("lights[2].pos", mgl32.Vec3{4, 1, 0})
-	o.shader.SetVec3("lights[2].ambient", mgl32.Vec3{0.1, 0.1, 0.1})
-	o.shader.SetVec3("lights[2].diffuse", mgl32.Vec3{1, 1, 1})
-	o.shader.SetVec3("lights[2].specular", mgl32.Vec3{1, 1, 1})
-	o.shader.SetFloat("lights[2].constant", 1.0)
-	o.shader.SetFloat("lights[2].linear", 0.027)
-	o.shader.SetFloat("lights[2].quadratic", 0.0028)
+	if o.state.lightingSSBO != 0 {
+		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 2, o.state.lightingSSBO)
+	} else {
+		panic("Lighting was never bound on state")
+	}
 
 	if o.hasAnimation {
 		transforms := o.animator.GetFinalBoneMatrices()
@@ -94,4 +125,16 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 		}
 	}
 	o.model.Draw(o.shader)
+}
+
+type Light struct {
+	Pos mgl32.Vec3
+
+	Ambient  mgl32.Vec3
+	Diffuse  mgl32.Vec3
+	Specular mgl32.Vec3
+
+	ConstantAttenuation  float32
+	LinearAttenuation    float32
+	QuadraticAttenuation float32
 }

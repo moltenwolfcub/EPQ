@@ -36,7 +36,10 @@ in vec2 texCoord;
 
 uniform vec3 camera;
 uniform Material material;
-uniform Light lights[3];
+
+layout(std430, binding = 2) buffer LightBuffer {
+	Light lights[];
+};
 
 out vec4 FragColor;
 

@@ -32,7 +32,38 @@ func NewGame() *Game {
 	cube := model.NewCubeModel(0.5)
 	// bigCuge := model.NewCubeModel(2)
 
-	g.state = &WorldState{}
+	g.state = NewWorldState()
+
+	g.state.Lights = []Light{
+		{
+			Pos:                  mgl32.Vec3{-2, 5, -2},
+			Ambient:              mgl32.Vec3{0.1, 0.1, 0.1},
+			Diffuse:              mgl32.Vec3{0.3, 0.5, 1},
+			Specular:             mgl32.Vec3{0.5, 0.7, 1},
+			ConstantAttenuation:  1.0,
+			LinearAttenuation:    0.09,
+			QuadraticAttenuation: 0.032,
+		},
+		{
+			Pos:                  mgl32.Vec3{0, 0, 3},
+			Ambient:              mgl32.Vec3{0.1, 0.05, 0},
+			Diffuse:              mgl32.Vec3{1, 0.5, 0.2},
+			Specular:             mgl32.Vec3{1, 0.5, 0.2},
+			ConstantAttenuation:  1.0,
+			LinearAttenuation:    0.045,
+			QuadraticAttenuation: 0.0075,
+		},
+		{
+			Pos:                  mgl32.Vec3{4, 1, 0},
+			Ambient:              mgl32.Vec3{0.1, 0.1, 0.1},
+			Diffuse:              mgl32.Vec3{1, 1, 1},
+			Specular:             mgl32.Vec3{1, 1, 1},
+			ConstantAttenuation:  1.0,
+			LinearAttenuation:    0.027,
+			QuadraticAttenuation: 0.0028,
+		},
+	}
+	g.state.BindLights()
 
 	g.state.Objects = []*WorldObject{
 		// NewWorldObject(g.state, "terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
