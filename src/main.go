@@ -1,8 +1,6 @@
 package main
 
 import (
-	"math"
-
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
@@ -83,8 +81,8 @@ func NewGame() *Game {
 			ConstantAttenuation:  1.0,
 			LinearAttenuation:    0.09,
 			QuadraticAttenuation: 0.032,
-			cutoff:               float32(math.Cos(float64(mgl32.DegToRad(12.5)))),
-			outerCutoff:          float32(math.Cos(float64(mgl32.DegToRad(15)))),
+			cutoff:               12.5,
+			outerCutoff:          15,
 		},
 	}
 	g.state.BindLights()

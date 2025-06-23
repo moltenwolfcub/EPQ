@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"unsafe"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -79,8 +80,8 @@ func (s *WorldState) BindLights() {
 				constant:    l.ConstantAttenuation,
 				linear:      l.LinearAttenuation,
 				quadratic:   l.QuadraticAttenuation,
-				cutoff:      l.cutoff,
-				outerCutoff: l.outerCutoff,
+				cutoff:      float32(math.Cos(float64(mgl32.DegToRad(l.cutoff)))),
+				outerCutoff: float32(math.Cos(float64(mgl32.DegToRad(l.outerCutoff)))),
 			}
 		}
 
