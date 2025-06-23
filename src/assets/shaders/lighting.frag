@@ -67,6 +67,24 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 d
 	return ambient + diffuse + specular;
 }
 
+vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+	vec3 lightDir = normalize(-light.direction);
+
+	float diff = max(dot(normal, lightDir), 0.0);
+
+	float spec = 0;
+	if (shininess != 0) {
+		vec3 reflectDir = reflect(-lightDir, normal);
+		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+	}
+
+	vec3 ambient = light.ambient * diffuseColor;
+	vec3 diffuse = light.diffuse * diffuseColor * diff;
+	vec3 specular = light.specular * specularColor * spec;
+
+	return ambient + diffuse + specular;
+}
+
 void main() {
 	float gamma = 2.2;
 
@@ -94,7 +112,13 @@ void main() {
 	vec3 result = vec3(0);
 	for (int i = 0; i < lights.length(); i++) {
 		Light l = lights[i];
-		result += CalcPointLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+		if (l.lightType == POINT) {
+			result += CalcPointLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+		} else if (l.lightType == DIRECTION) {
+			result += CalcDirLight(l, norm, viewDir, diffuseColor, specularColor, shininessValue);
+		} else {
+			continue;
+		}
 	}
 
 	FragColor = vec4(result, 1.0);
