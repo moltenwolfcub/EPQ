@@ -35,10 +35,10 @@ func (s *WorldState) BindLights() {
 		diffuse   [3]float32
 		_pad3     float32
 		specular  [3]float32
-		_pad4     float32
 		constant  float32
 		linear    float32
 		quadratic float32
+		_pad4     float32
 		_pad5     float32
 	}
 
