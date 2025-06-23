@@ -25,8 +25,33 @@ out vec3 fragPos;
 out vec2 texCoord;
 
 void main() {
-	gl_Position = proj * view * model * vec4(aPos, 1.0);
+	vec4 riggedPos = vec4(0);
+
+	bool hasBone = false;
+
+	for(int i = 0; i < aBoneCount; i++) {
+		int boneIndex = boneIDs[aBoneOffset + i];
+		float weight = boneWeights[aBoneOffset + i];
+		if(boneIndex < 0) {
+			continue;
+		} else {
+			hasBone = true;
+		}
+		if(boneIndex >= MAX_BONES) {
+			riggedPos = vec4(aPos, 1);
+			break;
+		}
+
+		vec4 localPos = finalBonesMatrices[boneIndex] * vec4(aPos, 1);
+		riggedPos += localPos * weight;
+	}
+
+	if (!hasBone) {
+		riggedPos = vec4(aPos, 1);
+	}
+
+	gl_Position = proj * view * model * riggedPos;
 	normal = mat3(transpose(inverse(model))) * aNormal;
-	fragPos = vec3(model*vec4(aPos,1.0));
+	fragPos = vec3(model * riggedPos);
 	texCoord = aTexCoord;
 }

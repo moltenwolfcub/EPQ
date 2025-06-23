@@ -45,10 +45,10 @@ func NewGame() *Game {
 		// 	LinearAttenuation:    14,
 		// 	QuadraticAttenuation: 15,
 		// },
-		// {
-		// 	Pos:                  mgl32.Vec3{0, 0, 0},
-		// 	Ambient:              mgl32.Vec3{1, 1, 1},
-		// 	Diffuse:              mgl32.Vec3{0, 0, 0},
+		// PointLight{
+		// 	Pos:                  mgl32.Vec3{0, 3, 0},
+		// 	Ambient:              mgl32.Vec3{0, 0, 0},
+		// 	Diffuse:              mgl32.Vec3{1, 1, 1},
 		// 	Specular:             mgl32.Vec3{0, 0, 0},
 		// 	ConstantAttenuation:  1,
 		// 	LinearAttenuation:    0,
@@ -96,7 +96,7 @@ func NewGame() *Game {
 		// NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{0, 5, 0}),
 		// NewWorldObjectFromModel(g.state, bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(g.state, simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		// NewWorldObject(g.state, "dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 1, 0}),
+		NewWorldObject(g.state, "dancing_vampire.dae", true, lightingShader, mgl32.Vec3{0, 1.3, 0}),
 		NewWorldObject(g.state, "firePit.obj", false, lightingShader, mgl32.Vec3{0, 0, 0}),
 	}
 
