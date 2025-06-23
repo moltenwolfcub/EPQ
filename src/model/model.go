@@ -689,27 +689,53 @@ func (b *Bone) Update(animationTime float32) {
 	b.localTransform = translation.Mul4(rotation.Mul4(scale))
 }
 
+// binary search to find position keyframe index directly before animationTime
 func (b Bone) GetPositionIndex(animationTime float32) int {
-	for index := range len(b.positions) - 1 {
-		if animationTime < b.positions[index+1].timeStamp {
-			return index
+	low, high := 0, len(b.positions)-2
+	for low <= high {
+		mid := (low + high) / 2
+		if animationTime < b.positions[mid+1].timeStamp {
+			high = mid - 1
+		} else {
+			low = mid + 1
 		}
+	}
+	if low < len(b.positions)-1 {
+		return low
 	}
 	panic(fmt.Errorf("no position index found for animationTime %f", animationTime))
 }
+
+// binary search to find rotation keyframe index directly before animationTime
 func (b Bone) GetRotationIndex(animationTime float32) int {
-	for index := range len(b.rotations) - 1 {
-		if animationTime < b.rotations[index+1].timeStamp {
-			return index
+	low, high := 0, len(b.rotations)-2
+	for low <= high {
+		mid := (low + high) / 2
+		if animationTime < b.rotations[mid+1].timeStamp {
+			high = mid - 1
+		} else {
+			low = mid + 1
 		}
+	}
+	if low < len(b.rotations)-1 {
+		return low
 	}
 	panic(fmt.Errorf("no rotation index found for animationTime %f", animationTime))
 }
+
+// binary search to find scaling keyframe index directly before animationTime
 func (b Bone) GetScaleIndex(animationTime float32) int {
-	for index := range len(b.scales) - 1 {
-		if animationTime < b.scales[index+1].timeStamp {
-			return index
+	low, high := 0, len(b.scales)-2
+	for low <= high {
+		mid := (low + high) / 2
+		if animationTime < b.scales[mid+1].timeStamp {
+			high = mid - 1
+		} else {
+			low = mid + 1
 		}
+	}
+	if low < len(b.scales)-1 {
+		return low
 	}
 	panic(fmt.Errorf("no scale index found for animationTime %f", animationTime))
 }
