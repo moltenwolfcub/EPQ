@@ -27,7 +27,7 @@ func NewGame() *Game {
 	blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 	// assimpModelShader := shader.Shader(shader.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 	// animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
-	lightingShader := shader.Shader(shader.NewEmbeddedShader(assets.LightingVert, assets.LightingFrag))
+	generalShader := shader.Shader(shader.NewEmbeddedShader(assets.GeneralVert, assets.GeneralFrag))
 
 	cube := model.NewCubeModel(0.5)
 	// bigCuge := model.NewCubeModel(2)
@@ -88,7 +88,7 @@ func NewGame() *Game {
 	g.state.BindLights()
 
 	g.state.Objects = []*WorldObject{
-		NewWorldObject(g.state, "terrain.obj", false, lightingShader, mgl32.Vec3{0, -1, 0}),
+		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
 		NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
@@ -96,8 +96,8 @@ func NewGame() *Game {
 		// NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{0, 5, 0}),
 		// NewWorldObjectFromModel(g.state, bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
 		// NewWorldObject(g.state, simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		NewWorldObject(g.state, "dancing_vampire.dae", true, lightingShader, mgl32.Vec3{0, 1.3, 0}),
-		NewWorldObject(g.state, "firePit.obj", false, lightingShader, mgl32.Vec3{0, 0, 0}),
+		NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
+		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 	}
 
 	g.playerPos = mgl32.Vec3{}

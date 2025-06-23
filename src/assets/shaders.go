@@ -31,6 +31,6 @@ var (
 	SimpleVert string = MustLoadShader("simple.vert")
 	SimpleFrag string = MustLoadShader("simple.frag")
 
-	LightingVert string = MustLoadShader("lighting.vert")
-	LightingFrag string = MustLoadShader("lighting.frag")
+	GeneralVert string = MustLoadShader("general.vert")
+	GeneralFrag string = MustLoadShader("general.frag")
 )
