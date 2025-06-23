@@ -24,7 +24,7 @@ func NewGame() *Game {
 	g.keyboardState = sdl.GetKeyboardState()
 
 	orangeShader := shader.Shader(shader.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
-	// blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
+	blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
 	// assimpModelShader := shader.Shader(shader.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
 	// animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 	lightingShader := shader.Shader(shader.NewEmbeddedShader(assets.LightingVert, assets.LightingFrag))
@@ -34,7 +34,9 @@ func NewGame() *Game {
 
 	g.state = WorldState{
 		// NewWorldObject("terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{-2, 5, -2}),
+		NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{-2, 5, -2}),
+		NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{0, 0, 3}),
+		NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{4, 1, 0}),
 		// NewWorldObjectFromModel(bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
 		// NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{0, 5, 0}),
 		// NewWorldObjectFromModel(bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),

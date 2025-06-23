@@ -36,7 +36,7 @@ in vec2 texCoord;
 
 uniform vec3 camera;
 uniform Material material;
-uniform Light foo;
+uniform Light lights[3];
 
 out vec4 FragColor;
 
@@ -84,7 +84,10 @@ void main() {
 	vec3 norm = normalize(normal);
 	vec3 viewDir = normalize(camera - fragPos);
 
-	vec3 result = CalcPointLight(foo, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+	vec3 result = vec3(0);
+	for (int i = 0; i < lights.length(); i++) {
+		result += CalcPointLight(lights[i], norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+	}
 
 	FragColor = vec4(result, 1.0);
 
