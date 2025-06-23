@@ -52,11 +52,8 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 d
 
 	float diff = max(dot(normal, lightDir), 0.0);
 
-	float spec = 0;
-	if (shininess != 0) {
-		vec3 reflectDir = reflect(-lightDir, normal);
-		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-	}
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 256);
 
 	float dist = length(light.pos - fragPos);
 	float attenuation = 1/(light.constant + light.linear*dist + light.quadratic*dist*dist);
@@ -76,11 +73,8 @@ vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec
 
 	float diff = max(dot(normal, lightDir), 0.0);
 
-	float spec = 0;
-	if (shininess != 0) {
-		vec3 reflectDir = reflect(-lightDir, normal);
-		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-	}
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
 	vec3 ambient = light.ambient * diffuseColor;
 	vec3 diffuse = light.diffuse * diffuseColor * diff;
@@ -98,11 +92,8 @@ vec3 CalcSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 di
 
 	float diff = max(dot(normal, lightDir), 0.0);
 
-	float spec = 0;
-	if (shininess != 0) {
-		vec3 reflectDir = reflect(-lightDir, normal);
-		spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-	}
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
 	float dist = length(light.pos - fragPos);
 	float attenuation = 1/(light.constant + light.linear*dist + light.quadratic*dist*dist);
@@ -135,11 +126,13 @@ void main() {
 		specularColor = pow(specularColor, vec3(gamma));
 	}
 
-	float shininessValue = material.shininess;
+	float shine = material.shininess;
 	if(material.hasTexRoughness) {
 		float roughness = texture(material.texture_roughness1, texCoord).r;
-		shininessValue = mix(0, 1000, 1-roughness);
+		roughness = clamp(roughness, 0.0, 0.99);
+		shine = 1-roughness;
 	}
+	float shininessValue = mix(2, 512, shine);
 
 	vec3 norm = normalize(normal);
 	vec3 viewDir = normalize(camera - fragPos);
