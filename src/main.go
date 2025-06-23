@@ -33,16 +33,18 @@ func NewGame() *Game {
 	// bigCuge := model.NewCubeModel(2)
 
 	g.state = WorldState{
-		// NewWorldObject("terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{-2, 5, -2}),
-		NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{0, 0, 3}),
-		NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{4, 1, 0}),
-		// NewWorldObjectFromModel(bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
-		// NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{0, 5, 0}),
-		// NewWorldObjectFromModel(bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
-		// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
-		// NewWorldObject("dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 1, 0}),
-		NewWorldObject("firePit.obj", false, lightingShader, mgl32.Vec3{0, 0, 0}),
+		Objects: []*WorldObject{
+			// NewWorldObject("terrain.obj", false, assimpModelShader, mgl32.Vec3{0, 0, 0}),
+			NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{-2, 5, -2}),
+			NewWorldObjectFromModel(cube, orangeShader, mgl32.Vec3{0, 0, 3}),
+			NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{4, 1, 0}),
+			// NewWorldObjectFromModel(bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
+			// NewWorldObjectFromModel(cube, blueShader, mgl32.Vec3{0, 5, 0}),
+			// NewWorldObjectFromModel(bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
+			// NewWorldObject(simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
+			// NewWorldObject("dancing_vampire.dae", true, animatedShader, mgl32.Vec3{0, 1, 0}),
+			NewWorldObject("firePit.obj", false, lightingShader, mgl32.Vec3{0, 0, 0}),
+		},
 	}
 
 	g.playerPos = mgl32.Vec3{}
@@ -65,7 +67,7 @@ func (g *Game) runGame() {
 			return
 		}
 
-		for _, object := range g.state {
+		for _, object := range g.state.Objects {
 			object.Update(deltaTime)
 		}
 

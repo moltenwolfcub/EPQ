@@ -8,7 +8,9 @@ import (
 	"github.com/moltenwolfcub/EPQ/src/shader"
 )
 
-type WorldState []*WorldObject
+type WorldState struct {
+	Objects []*WorldObject
+}
 
 type WorldObject struct {
 	model        model.Model
