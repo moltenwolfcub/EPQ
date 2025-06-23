@@ -44,7 +44,7 @@ func (s *WorldState) BindLights() {
 		constant  float32
 		linear    float32
 		quadratic float32
-		_pad4     float32
+		cutoff    float32
 		_pad5     float32
 	}
 
@@ -63,6 +63,8 @@ func (s *WorldState) BindLights() {
 			constant:  light.ConstantAttenuation,
 			linear:    light.LinearAttenuation,
 			quadratic: light.QuadraticAttenuation,
+
+			cutoff: light.cutoff,
 		})
 	}
 
@@ -149,4 +151,6 @@ type Light struct {
 	ConstantAttenuation  float32
 	LinearAttenuation    float32
 	QuadraticAttenuation float32
+
+	cutoff float32
 }

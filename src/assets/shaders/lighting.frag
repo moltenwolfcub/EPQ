@@ -2,6 +2,7 @@
 
 const int POINT = 0;
 const int DIRECTION = 1;
+const int SPOT = 2;
 
 struct Material {
 	vec3 diffuse;
@@ -28,6 +29,8 @@ struct Light {
 	float constant;
 	float linear;
 	float quadratic;
+
+	float cutoff;
 };
 
 in vec3 normal;
@@ -85,6 +88,35 @@ vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec
 	return ambient + diffuse + specular;
 }
 
+vec3 CalcSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor, float shininess) {
+	vec3 lightDir = normalize(light.pos - fragPos);
+
+	float theta = dot(lightDir, normalize(-light.direction));
+
+	float diff = 0;
+	float spec = 0;
+	if (theta > light.cutoff) {
+		diff = max(dot(normal, lightDir), 0.0);
+
+		if (shininess != 0) {
+			vec3 reflectDir = reflect(-lightDir, normal);
+			spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+		}
+	}
+
+	float dist = length(light.pos - fragPos);
+	float attenuation = 1/(light.constant + light.linear*dist + light.quadratic*dist*dist);
+
+	vec3 ambient = light.ambient * diffuseColor;
+	vec3 diffuse = light.diffuse * diffuseColor * diff;
+	vec3 specular = light.specular * specularColor * spec;
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+
+	return ambient + diffuse + specular;
+}
+
 void main() {
 	float gamma = 2.2;
 
@@ -116,6 +148,8 @@ void main() {
 			result += CalcPointLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
 		} else if (l.lightType == DIRECTION) {
 			result += CalcDirLight(l, norm, viewDir, diffuseColor, specularColor, shininessValue);
+		} else if (l.lightType == SPOT) {
+			result += CalcSpotLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
 		} else {
 			continue;
 		}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
@@ -35,13 +37,13 @@ func NewGame() *Game {
 	g.state = NewWorldState()
 
 	g.state.Lights = []Light{
-		{
-			LightType: 1,
-			Dir:       mgl32.Vec3{0, 0, -1},
-			Ambient:   mgl32.Vec3{0, 0, 0},
-			Diffuse:   mgl32.Vec3{1, 1, 1},
-			Specular:  mgl32.Vec3{1, 1, 1},
-		},
+		// {
+		// 	LightType: 1,
+		// 	Dir:       mgl32.Vec3{0, 0, -1},
+		// 	Ambient:   mgl32.Vec3{0, 0, 0},
+		// 	Diffuse:   mgl32.Vec3{1, 1, 1},
+		// 	Specular:  mgl32.Vec3{1, 1, 1},
+		// },
 		// {
 		// 	LightType:            0,
 		// 	Pos:                  mgl32.Vec3{0, 0, 0},
@@ -92,6 +94,18 @@ func NewGame() *Game {
 		// 	LinearAttenuation:    0.027,
 		// 	QuadraticAttenuation: 0.0028,
 		// },
+		{
+			LightType:            2,
+			Pos:                  mgl32.Vec3{6, 1, 0},
+			Dir:                  mgl32.Vec3{-1, 0, 0},
+			Ambient:              mgl32.Vec3{0.1, 0.1, 0.1},
+			Diffuse:              mgl32.Vec3{1, 1, 1},
+			Specular:             mgl32.Vec3{0.7, 0.7, 0.7},
+			ConstantAttenuation:  1.0,
+			LinearAttenuation:    0.022,
+			QuadraticAttenuation: 0.0019,
+			cutoff:               float32(math.Cos(float64(mgl32.DegToRad(12.5)))),
+		},
 	}
 	g.state.BindLights()
 
@@ -99,7 +113,7 @@ func NewGame() *Game {
 		NewWorldObject(g.state, "terrain.obj", false, lightingShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
 		NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 0, 3}),
-		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 3, 0}),
+		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 1, 0}),
 		// NewWorldObjectFromModel(g.state, bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
 		// NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{0, 5, 0}),
 		// NewWorldObjectFromModel(g.state, bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
