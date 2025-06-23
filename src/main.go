@@ -25,35 +25,13 @@ func NewGame() *Game {
 
 	orangeShader := shader.Shader(shader.NewEmbeddedShader(assets.OrangeVert, assets.OrangeFrag))
 	blueShader := shader.Shader(shader.NewEmbeddedShader(assets.BlueVert, assets.BlueFrag))
-	// assimpModelShader := shader.Shader(shader.NewEmbeddedShader(assets.AssimpModelVert, assets.AssimpModelFrag))
-	// animatedShader := shader.Shader(shader.NewEmbeddedShader(assets.AnimatedModelVert, assets.AssimpModelFrag))
 	generalShader := shader.Shader(shader.NewEmbeddedShader(assets.GeneralVert, assets.GeneralFrag))
 
 	cube := model.NewCubeModel(0.5)
-	// bigCuge := model.NewCubeModel(2)
 
 	g.state = NewWorldState()
 
 	g.state.Lights = []Light{
-		// {
-		// 	LightType:            0,
-		// 	Pos:                  mgl32.Vec3{1, 2, 3},
-		// 	Ambient:              mgl32.Vec3{4, 5, 6},
-		// 	Diffuse:              mgl32.Vec3{7, 8, 9},
-		// 	Specular:             mgl32.Vec3{10, 11, 12},
-		// 	ConstantAttenuation:  13,
-		// 	LinearAttenuation:    14,
-		// 	QuadraticAttenuation: 15,
-		// },
-		// PointLight{
-		// 	Pos:                  mgl32.Vec3{0, 3, 0},
-		// 	Ambient:              mgl32.Vec3{0, 0, 0},
-		// 	Diffuse:              mgl32.Vec3{1, 1, 1},
-		// 	Specular:             mgl32.Vec3{0, 0, 0},
-		// 	ConstantAttenuation:  1,
-		// 	LinearAttenuation:    0,
-		// 	QuadraticAttenuation: 0,
-		// },
 		PointLight{
 			Pos:                  mgl32.Vec3{-2, 5, -2},
 			Ambient:              mgl32.Vec3{0, 0, 0},
@@ -92,10 +70,6 @@ func NewGame() *Game {
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
 		NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
-		// NewWorldObjectFromModel(g.state, bigCuge, blueShader, mgl32.Vec3{5, 0, 0}),
-		// NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{0, 5, 0}),
-		// NewWorldObjectFromModel(g.state, bigCuge, orangeShader, mgl32.Vec3{0, 0, -6}),
-		// NewWorldObject(g.state, simpleAnim, simpleShader, mgl32.Vec3{0, 10, 0}),
 		NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 	}

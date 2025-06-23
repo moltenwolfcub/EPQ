@@ -23,14 +23,6 @@ var (
 	BlueVert string = MustLoadShader("blue.vert")
 	BlueFrag string = MustLoadShader("blue.frag")
 
-	AssimpModelVert string = MustLoadShader("assimpModel.vert")
-	AssimpModelFrag string = MustLoadShader("assimpModel.frag")
-
-	AnimatedModelVert string = MustLoadShader("animatedModel.vert")
-
-	SimpleVert string = MustLoadShader("simple.vert")
-	SimpleFrag string = MustLoadShader("simple.frag")
-
 	GeneralVert string = MustLoadShader("general.vert")
 	GeneralFrag string = MustLoadShader("general.frag")
 )
