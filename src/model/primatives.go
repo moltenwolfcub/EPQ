@@ -4,7 +4,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-func NewCubeModel(size float32) Model {
+func NewCubeModel(size float32) *Model {
 	m := Model{}
 
 	pos := size / 2
@@ -61,6 +61,6 @@ func NewCubeModel(size float32) Model {
 	textures := []Texture{}
 	material := Material{}
 
-	m.Meshes = []Mesh{NewMesh(verts, indices, textures, material, []int32{-3}, []float32{0})}
-	return m
+	m.Meshes = []*Mesh{NewMesh(verts, indices, textures, material, []int32{-3}, []float32{0})}
+	return &m
 }

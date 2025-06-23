@@ -95,15 +95,15 @@ func (s *WorldState) BindLights() {
 type WorldObject struct {
 	state *WorldState
 
-	model        model.Model
-	animator     model.Animator
+	model        *model.Model
+	animator     *model.Animator
 	hasAnimation bool
 
 	shader   shader.Shader
 	modelMat mgl32.Mat4
 }
 
-func NewWorldObjectFromModel(state *WorldState, m model.Model, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
+func NewWorldObjectFromModel(state *WorldState, m *model.Model, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
 	return &WorldObject{
 		state:        state,
 		model:        m,
@@ -123,15 +123,20 @@ func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, shad
 	}
 
 	if o.hasAnimation {
-		animation := model.NewAnimation(modelFile, &o.model)
-		o.animator = model.NewAnimator(&animation)
+		animation := model.NewAnimation(modelFile, o.model)
+		o.animator = model.NewAnimator(animation)
 	}
 
 	return &o
 }
 
 func (o *WorldObject) Update(deltaTime float32) {
-	o.animator.UpdateAnimation(deltaTime)
+	if o.hasAnimation {
+		if o.animator == nil {
+			panic("Animator wasn't set but object has animation. Nil Pointer")
+		}
+		o.animator.UpdateAnimation(deltaTime)
+	}
 }
 
 func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {

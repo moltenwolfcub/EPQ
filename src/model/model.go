@@ -75,7 +75,7 @@ func getMaterialFloatOrDefault(mat *C.struct_aiMaterial, valKey string, defaultV
 }
 
 type Model struct {
-	Meshes           []Mesh
+	Meshes           []*Mesh
 	textureDirectory string
 	texturesLoaded   map[string]Texture
 
@@ -83,12 +83,12 @@ type Model struct {
 	boneCounter int
 }
 
-func NewModel(path string) Model {
+func NewModel(path string) *Model {
 	m := Model{}
 
 	m.loadModel(path)
 
-	return m
+	return &m
 }
 
 func (m Model) Draw(shader shader.Shader) {
@@ -141,7 +141,7 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 	}
 }
 
-func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) Mesh {
+func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mesh {
 	var vertices []Vertex
 	var indices []uint32
 	var textures []Texture
@@ -368,7 +368,7 @@ type Mesh struct {
 	boneWeightSSBO uint32
 }
 
-func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Material, boneIDs []int32, boneWeights []float32) Mesh {
+func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Material, boneIDs []int32, boneWeights []float32) *Mesh {
 	m := Mesh{
 		Vertices:    verts,
 		Indices:     indices,
@@ -379,7 +379,7 @@ func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Mate
 	}
 	m.setupMesh()
 
-	return m
+	return &m
 }
 
 func (m Mesh) Draw(shader shader.Shader) {
@@ -470,7 +470,7 @@ type Animator struct {
 	currentTime        float32
 }
 
-func NewAnimator(animation *Animation) Animator {
+func NewAnimator(animation *Animation) *Animator {
 	a := Animator{
 		finalBoneMatricies: make([]mgl32.Mat4, 0, 100),
 		currentAnimation:   animation,
@@ -481,14 +481,14 @@ func NewAnimator(animation *Animation) Animator {
 		a.finalBoneMatricies = append(a.finalBoneMatricies, mgl32.Ident4())
 	}
 
-	return a
+	return &a
 }
 
 func (a *Animator) UpdateAnimation(dt float32) {
 	if a.currentAnimation != nil {
 		a.currentTime += float32(a.currentAnimation.ticksPerSecond) * dt
 		a.currentTime = float32(math.Mod(float64(a.currentTime), float64(a.currentAnimation.duration)))
-		a.CalculateBoneTransform(&a.currentAnimation.rootNode, mgl32.Ident4())
+		a.CalculateBoneTransform(a.currentAnimation.rootNode, mgl32.Ident4())
 	}
 }
 
@@ -514,7 +514,7 @@ func (a *Animator) CalculateBoneTransform(node *AssimpNodeData, parentTransform 
 	}
 
 	for _, child := range node.children {
-		a.CalculateBoneTransform(&child, globalTransform)
+		a.CalculateBoneTransform(child, globalTransform)
 	}
 }
 
@@ -525,18 +525,18 @@ func (a Animator) GetFinalBoneMatrices() []mgl32.Mat4 {
 type AssimpNodeData struct {
 	transformation mgl32.Mat4
 	name           string
-	children       []AssimpNodeData
+	children       []*AssimpNodeData
 }
 
 type Animation struct {
 	duration       float32
 	ticksPerSecond int
 	bones          map[string]*Bone
-	rootNode       AssimpNodeData
+	rootNode       *AssimpNodeData
 	boneInfoMap    map[string]BoneInfo
 }
 
-func NewAnimation(animationPath string, model *Model) Animation {
+func NewAnimation(animationPath string, model *Model) *Animation {
 	fileIO := C.CreateMemoryFileIO()
 	cpath := C.CString(animationPath)
 	defer C.free(unsafe.Pointer(cpath))
@@ -550,7 +550,7 @@ func NewAnimation(animationPath string, model *Model) Animation {
 
 	if scene == nil || (scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene.mRootNode == nil {
 		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
-		return Animation{}
+		return nil
 	}
 
 	a := Animation{
@@ -558,15 +558,15 @@ func NewAnimation(animationPath string, model *Model) Animation {
 		boneInfoMap: make(map[string]BoneInfo),
 	}
 
-	sceneAnimation := unsafe.Slice(scene.mAnimations, scene.mNumAnimations)
-	animation := sceneAnimation[0] //TODO i think this only loads the first animation. Adapt for any animation
+	sceneAnimations := unsafe.Slice(scene.mAnimations, scene.mNumAnimations)
+	animation := sceneAnimations[0] //TODO i think this only loads the first animation. Adapt for any animation
 
 	a.duration = float32(animation.mDuration)
 	a.ticksPerSecond = int(animation.mTicksPerSecond)
 	a.rootNode = a.readHeirarchyData(scene.mRootNode)
 	a.readMissingBones(animation, model)
 
-	return a
+	return &a
 }
 
 func (a Animation) FindBone(name string) *Bone {
@@ -577,19 +577,19 @@ func (a Animation) FindBone(name string) *Bone {
 	return nil
 }
 
-func (a Animation) readHeirarchyData(src *C.struct_aiNode) AssimpNodeData {
+func (a Animation) readHeirarchyData(src *C.struct_aiNode) *AssimpNodeData {
 	dest := AssimpNodeData{
 		name:           C.GoString(&src.mName.data[0]),
 		transformation: Mat4assimp2mgl(src.mTransformation),
-		children:       make([]AssimpNodeData, 0, int(src.mNumChildren)),
+		children:       make([]*AssimpNodeData, 0, int(src.mNumChildren)),
 	}
 
 	srcChildren := unsafe.Slice(src.mChildren, src.mNumChildren)
 	for _, childNode := range srcChildren {
-		childDdata := a.readHeirarchyData(childNode)
-		dest.children = append(dest.children, childDdata)
+		childData := a.readHeirarchyData(childNode)
+		dest.children = append(dest.children, childData)
 	}
-	return dest
+	return &dest
 }
 
 func (a *Animation) readMissingBones(animation *C.struct_aiAnimation, model *Model) {
