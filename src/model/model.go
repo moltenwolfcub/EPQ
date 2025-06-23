@@ -77,7 +77,7 @@ func getMaterialFloatOrDefault(mat *C.struct_aiMaterial, valKey string, defaultV
 type Model struct {
 	Meshes           []Mesh
 	textureDirectory string
-	texturesLoaded   []Texture
+	texturesLoaded   map[string]Texture
 
 	boneInfoMap map[string]BoneInfo
 	boneCounter int
@@ -118,6 +118,7 @@ func (m *Model) loadModel(path string) {
 	m.textureDirectory = strings.Split(path, ".")[0]
 
 	m.boneInfoMap = make(map[string]BoneInfo)
+	m.texturesLoaded = make(map[string]Texture)
 
 	m.processNode(scene.mRootNode, scene)
 }
@@ -266,22 +267,18 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 		C.aiGetMaterialTexture(mat, texture_type, i, &cstr, nil, nil, nil, nil, nil, nil)
 		path := C.GoString(&cstr.data[0])
 
-		skip := false
-		for _, tex := range m.texturesLoaded {
-			if tex.Path == path {
-				textures = append(textures, tex)
-				skip = true
-				break
-			}
-		}
-		if !skip {
+		tex, ok := m.texturesLoaded[path]
+		if ok {
+			textures = append(textures, tex)
+		} else {
 			var texture Texture
 			texture.Id = TextureFromFile(path, m.textureDirectory)
 			texture.TextureType = typeName
 			texture.Path = path
 
 			textures = append(textures, texture)
-			m.texturesLoaded = append(m.texturesLoaded, texture)
+			m.texturesLoaded[path] = texture
+
 		}
 	}
 	return textures
