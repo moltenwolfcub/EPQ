@@ -28,8 +28,14 @@ func NewWorldState() *WorldState {
 func (s *WorldState) BindLights() {
 	//padding because vec3s need to be aligned to 16 bytes in SSBOS
 	type internalLight struct {
+		lightType int32
+		_pad6     float32
+		_pad7     float32
+		_pad8     float32
 		pos       [3]float32
 		_pad1     float32
+		dir       [3]float32
+		_pad9     float32
 		ambient   [3]float32
 		_pad2     float32
 		diffuse   [3]float32
@@ -45,7 +51,10 @@ func (s *WorldState) BindLights() {
 	internalLights := []internalLight{}
 	for _, light := range s.Lights {
 		internalLights = append(internalLights, internalLight{
+			lightType: int32(light.LightType),
+
 			pos: light.Pos,
+			dir: light.Dir,
 
 			ambient:  light.Ambient,
 			diffuse:  light.Diffuse,
@@ -128,7 +137,10 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 }
 
 type Light struct {
+	LightType int
+
 	Pos mgl32.Vec3
+	Dir mgl32.Vec3
 
 	Ambient  mgl32.Vec3
 	Diffuse  mgl32.Vec3

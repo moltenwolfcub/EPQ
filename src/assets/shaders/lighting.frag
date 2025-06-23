@@ -16,10 +16,10 @@ struct Material {
 	bool hasTexRoughness;
 };
 struct Light {
-	// int lightType;
+	int lightType;
 
 	vec3 pos;
-	// vec3 direction;
+	vec3 direction;
 
 	vec3 ambient;
 	vec3 diffuse;
@@ -93,7 +93,8 @@ void main() {
 
 	vec3 result = vec3(0);
 	for (int i = 0; i < lights.length(); i++) {
-		result += CalcPointLight(lights[i], norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
+		Light l = lights[i];
+		result += CalcPointLight(l, norm, fragPos, viewDir, diffuseColor, specularColor, shininessValue);
 	}
 
 	FragColor = vec4(result, 1.0);
