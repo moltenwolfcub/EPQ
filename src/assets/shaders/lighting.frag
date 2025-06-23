@@ -68,14 +68,18 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 d
 }
 
 void main() {
+	float gamma = 2.2;
+
 	vec3 diffuseColor = material.diffuse;
 	if(material.hasTexDiffuse) {
 		diffuseColor = texture(material.texture_diffuse1, texCoord).rgb;
+		diffuseColor = pow(diffuseColor, vec3(gamma));
 	}
 
 	vec3 specularColor = material.specular;
 	if(material.hasTexSpecular) {
 		specularColor = texture(material.texture_specular1, texCoord).rgb;
+		specularColor = pow(specularColor, vec3(gamma));
 	}
 
 	float shininessValue = material.shininess;
@@ -94,6 +98,5 @@ void main() {
 
 	FragColor = vec4(result, 1.0);
 
-	float gamma = 2.2;
 	FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
 }
