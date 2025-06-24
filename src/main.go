@@ -1,6 +1,12 @@
 package main
 
 import (
+	"flag"
+	"log"
+	_ "net/http/pprof"
+	"os"
+	"runtime/pprof"
+
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
@@ -123,7 +129,22 @@ func (g *Game) handleEvents() int {
 	return 0
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close() // error handling omitted for example
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
 	g := NewGame()
 	defer g.close()
 	g.runGame()
