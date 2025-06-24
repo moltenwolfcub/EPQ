@@ -171,6 +171,11 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mes
 		Weights []float32
 	}
 	influences := make([]BoneInfluence, mesh.mNumVertices)
+	for i := range influences {
+		influences[i].BoneIDs = make([]int32, 0, 1)
+		influences[i].Weights = make([]float32, 0, 1)
+	}
+
 	if len(meshBones) > 0 {
 		for _, bone := range meshBones {
 			boneId := -1
@@ -671,6 +676,10 @@ func NewBone(name string, channel *C.struct_aiNodeAnim) *Bone {
 	b := Bone{
 		name:           name,
 		localTransform: mgl32.Ident4(),
+
+		positions: make([]KeyPosition, 0, channel.mNumPositionKeys),
+		rotations: make([]KeyRotation, 0, channel.mNumRotationKeys),
+		scales:    make([]KeyScale, 0, channel.mNumScalingKeys),
 	}
 
 	positionArray := unsafe.Slice(channel.mPositionKeys, channel.mNumPositionKeys)
