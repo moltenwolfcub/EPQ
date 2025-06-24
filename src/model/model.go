@@ -105,7 +105,7 @@ func (m *Model) loadModel(path string) {
 
 	scene := C.aiImportFileEx(
 		cpath,
-		C.uint(C.aiProcess_Triangulate), //|C.aiProcess_FlipUVs //TODO had to turn off filpUVs for this model
+		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
 		fileIO,
 	)
 	defer C.aiReleaseImport(scene)
@@ -294,8 +294,6 @@ func TextureFromFile(path, directory string) uint32 {
 	loc := fmt.Sprintf("%s/%s", directory, path)
 	img := assets.MustLoadImage(loc)
 
-	convertedImg := flipVertical(img)
-
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
 	gl.BindTexture(gl.TEXTURE_2D, textureID)
@@ -303,12 +301,12 @@ func TextureFromFile(path, directory string) uint32 {
 		gl.TEXTURE_2D,
 		0,
 		gl.RGBA,
-		int32(convertedImg.Bounds().Dx()),
-		int32(convertedImg.Bounds().Dy()),
+		int32(img.Bounds().Dx()),
+		int32(img.Bounds().Dy()),
 		0,
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
-		gl.Ptr(convertedImg.Pix),
+		gl.Ptr(getPixArray(img)),
 	)
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
@@ -322,18 +320,15 @@ func TextureFromFile(path, directory string) uint32 {
 	return textureID
 }
 
-func flipVertical(img image.Image) *image.NRGBA {
-	bounds := img.Bounds()
-	flipped := image.NewNRGBA(bounds)
-	width := bounds.Dx()
-	height := bounds.Dy()
-
-	for y := range height {
-		for x := range width {
-			flipped.Set(x, height-1-y, img.At(x, y))
-		}
+func getPixArray(img image.Image) []uint8 {
+	switch i := img.(type) {
+	case *image.RGBA:
+		return i.Pix
+	case *image.NRGBA:
+		return i.Pix
+	default:
+		panic(fmt.Errorf("Not implemented getting pix array for image type: %T\nHINT: change precision to 8bit color maybe", img))
 	}
-	return flipped
 }
 
 type BoneInfo struct {
