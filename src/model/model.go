@@ -143,10 +143,16 @@ func (m *Model) processNode(node *C.struct_aiNode, scene *C.struct_aiScene) {
 
 func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mesh {
 	var vertices []Vertex = make([]Vertex, mesh.mNumVertices)
-	var indices []uint32
-	var textures []Texture
-	var boneIDs []int32
-	var boneWeights []float32
+	var indices []uint32 = make([]uint32, 0, mesh.mNumFaces*3)
+	var textures []Texture = make([]Texture, 0, 3)
+
+	bonesPerVertex := 1.0
+	if mesh.mNumBones > 0 {
+		bonesPerVertex = 1.5
+	}
+
+	var boneIDs []int32 = make([]int32, 0, int(float64(mesh.mNumVertices)*bonesPerVertex))
+	var boneWeights []float32 = make([]float32, 0, int(float64(mesh.mNumVertices)*bonesPerVertex))
 
 	// vertices
 	meshVertices := unsafe.Slice(mesh.mVertices, mesh.mNumVertices)
