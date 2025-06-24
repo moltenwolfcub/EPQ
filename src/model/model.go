@@ -19,6 +19,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/shader"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 //export getRawModel
@@ -292,7 +293,8 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 
 func TextureFromFile(path, directory string) uint32 {
 	loc := fmt.Sprintf("%s/%s", directory, path)
-	img := assets.MustLoadImage(loc)
+	img := assets.MustLoadSDLImage(loc)
+	// fmt.Println(loc)
 
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
@@ -308,6 +310,12 @@ func TextureFromFile(path, directory string) uint32 {
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(getPixArray(img)),
 	)
+
+	switch i := img.(type) {
+	case *sdl.Surface:
+		i.Free()
+	}
+
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
@@ -326,6 +334,8 @@ func getPixArray(img image.Image) []uint8 {
 		return i.Pix
 	case *image.NRGBA:
 		return i.Pix
+	case *sdl.Surface:
+		return i.Pixels()
 	default:
 		panic(fmt.Errorf("Not implemented getting pix array for image type: %T\nHINT: change precision to 8bit color maybe", img))
 	}
