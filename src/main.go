@@ -71,14 +71,15 @@ func NewGame() *Game {
 	}
 	g.state.BindLights()
 
-	g.state.Objects = []*WorldObject{
-		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
+	g.state.Objects = append(g.state.Objects,
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
 		NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
-		NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
-	}
+		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
+		NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
+	)
+	g.state.FinaliseLoad()
 
 	g.playerPos = mgl32.Vec3{}
 

@@ -285,7 +285,7 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 			textures = append(textures, tex)
 		} else {
 			var texture Texture
-			texture.Id = TextureFromFile(path, m.textureDirectory)
+			texture.img = TextureFromFile(path, m.textureDirectory)
 			texture.TextureType = typeName
 			texture.Path = path
 
@@ -297,41 +297,30 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 	return textures
 }
 
-func TextureFromFile(path, directory string) uint32 {
+type _img struct {
+	width, height int32
+	pixArray      []uint8
+}
+
+func TextureFromFile(path, directory string) _img {
 	loc := fmt.Sprintf("%s/%s", directory, path)
-	img := assets.MustLoadSDLImage(loc)
-	// fmt.Println(loc)
+	loadedImage := assets.MustLoadSDLImage(loc)
 
-	var textureID uint32
-	gl.GenTextures(1, &textureID)
-	gl.BindTexture(gl.TEXTURE_2D, textureID)
-	gl.TexImage2D(
-		gl.TEXTURE_2D,
-		0,
-		gl.RGBA,
-		int32(img.Bounds().Dx()),
-		int32(img.Bounds().Dy()),
-		0,
-		gl.RGBA,
-		gl.UNSIGNED_BYTE,
-		gl.Ptr(getPixArray(img)),
-	)
+	pixCopy := make([]uint8, len(getPixArray(loadedImage)))
+	copy(pixCopy, getPixArray(loadedImage))
 
-	switch i := img.(type) {
+	img := _img{
+		width:    int32(loadedImage.Bounds().Dx()),
+		height:   int32(loadedImage.Bounds().Dy()),
+		pixArray: pixCopy,
+	}
+
+	switch i := loadedImage.(type) {
 	case *sdl.Surface:
 		i.Free()
 	}
 
-	gl.GenerateMipmap(gl.TEXTURE_2D)
-
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-
-	gl.BindTexture(gl.TEXTURE_2D, 0)
-
-	return textureID
+	return img
 }
 
 func getPixArray(img image.Image) []uint8 {
@@ -365,6 +354,8 @@ type Texture struct {
 	Id          uint32
 	TextureType string
 	Path        string
+
+	img _img
 }
 
 type Material struct {
@@ -394,7 +385,7 @@ func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Mate
 		BoneIDs:     boneIDs,
 		BoneWeights: boneWeights,
 	}
-	m.setupMesh()
+	// m.setupMesh()
 
 	return &m
 }
@@ -441,7 +432,38 @@ func (m Mesh) Draw(shader shader.Shader) {
 	gl.BindVertexArray(0)
 }
 
-func (m *Mesh) setupMesh() {
+func (m *Mesh) BindTextures() {
+	for i := range m.Textures {
+		t := &m.Textures[i]
+		var textureID uint32
+		gl.GenTextures(1, &textureID)
+		gl.BindTexture(gl.TEXTURE_2D, textureID)
+		gl.TexImage2D(
+			gl.TEXTURE_2D,
+			0,
+			gl.RGBA,
+			t.img.width,
+			t.img.height,
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			gl.Ptr(t.img.pixArray),
+		)
+
+		gl.GenerateMipmap(gl.TEXTURE_2D)
+
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+
+		gl.BindTexture(gl.TEXTURE_2D, 0)
+
+		t.Id = textureID
+	}
+}
+
+func (m *Mesh) SetupMesh() {
 	gl.GenVertexArrays(1, &m.vao)
 	gl.GenBuffers(1, &m.vbo)
 	gl.GenBuffers(1, &m.ebo)

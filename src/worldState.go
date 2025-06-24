@@ -19,11 +19,19 @@ type WorldState struct {
 }
 
 func NewWorldState() *WorldState {
-	state := &WorldState{}
+	state := &WorldState{
+		Objects: make([]*WorldObject, 0),
+	}
 
 	gl.GenBuffers(1, &state.lightingSSBO)
 
 	return state
+}
+
+func (s *WorldState) FinaliseLoad() {
+	for _, o := range s.Objects {
+		o.finaliseLoad()
+	}
 }
 
 func (s *WorldState) BindLights() {
@@ -128,6 +136,13 @@ func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, shad
 	}
 
 	return &o
+}
+
+func (o *WorldObject) finaliseLoad() {
+	for _, m := range o.model.Meshes {
+		m.SetupMesh()
+		m.BindTextures()
+	}
 }
 
 func (o *WorldObject) Update(deltaTime float32) {
