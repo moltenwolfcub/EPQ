@@ -82,12 +82,14 @@ type Model struct {
 
 	boneInfoMap map[string]BoneInfo
 	boneCounter int
+
+	scene *C.struct_aiScene
 }
 
-func NewModel(path string) *Model {
+func NewModel(path string, preserveScene bool) *Model {
 	m := Model{}
 
-	m.loadModel(path)
+	m.loadModel(path, preserveScene)
 
 	return &m
 }
@@ -98,7 +100,7 @@ func (m Model) Draw(shader shader.Shader) {
 	}
 }
 
-func (m *Model) loadModel(path string) {
+func (m *Model) loadModel(path string, preserveScene bool) {
 	fileIO := C.CreateMemoryFileIO()
 
 	cpath := C.CString(path)
@@ -109,7 +111,11 @@ func (m *Model) loadModel(path string) {
 		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
 		fileIO,
 	)
-	defer C.aiReleaseImport(scene)
+	if preserveScene {
+		m.scene = scene
+	} else {
+		defer C.aiReleaseImport(scene)
+	}
 
 	if scene == nil || (scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene.mRootNode == nil {
 		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
@@ -547,19 +553,16 @@ type Animation struct {
 	boneInfoMap    map[string]BoneInfo
 }
 
-func NewAnimation(animationPath string, model *Model) *Animation {
-	fileIO := C.CreateMemoryFileIO()
-	cpath := C.CString(animationPath)
-	defer C.free(unsafe.Pointer(cpath))
+func NewAnimation(model *Model) *Animation {
+	if model.scene == nil {
+		panic("Model didn't preserve scene, can't load animation")
+	}
+	defer func() {
+		C.aiReleaseImport(model.scene)
+		model.scene = nil
+	}()
 
-	scene := C.aiImportFileEx(
-		cpath,
-		C.uint(C.aiProcess_Triangulate|C.aiProcess_FlipUVs),
-		fileIO,
-	)
-	defer C.aiReleaseImport(scene)
-
-	if scene == nil || (scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene.mRootNode == nil {
+	if model.scene == nil || (model.scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || model.scene.mRootNode == nil {
 		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
 		return nil
 	}
@@ -569,12 +572,12 @@ func NewAnimation(animationPath string, model *Model) *Animation {
 		boneInfoMap: make(map[string]BoneInfo),
 	}
 
-	sceneAnimations := unsafe.Slice(scene.mAnimations, scene.mNumAnimations)
+	sceneAnimations := unsafe.Slice(model.scene.mAnimations, model.scene.mNumAnimations)
 	animation := sceneAnimations[0] //TODO i think this only loads the first animation. Adapt for any animation
 
 	a.duration = float32(animation.mDuration)
 	a.ticksPerSecond = int(animation.mTicksPerSecond)
-	a.rootNode = a.readHeirarchyData(scene.mRootNode)
+	a.rootNode = a.readHeirarchyData(model.scene.mRootNode)
 	a.readMissingBones(animation, model)
 
 	return &a

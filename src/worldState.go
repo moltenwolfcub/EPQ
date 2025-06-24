@@ -116,14 +116,14 @@ func NewWorldObjectFromModel(state *WorldState, m *model.Model, shader shader.Sh
 func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
 	o := WorldObject{
 		state:        state,
-		model:        model.NewModel(modelFile),
+		model:        model.NewModel(modelFile, hasAnimation),
 		hasAnimation: hasAnimation,
 		shader:       shader,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
 	}
 
 	if o.hasAnimation {
-		animation := model.NewAnimation(modelFile, o.model)
+		animation := model.NewAnimation(o.model)
 		o.animator = model.NewAnimator(animation)
 	}
 
