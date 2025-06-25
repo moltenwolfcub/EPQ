@@ -77,7 +77,9 @@ func NewGame() *Game {
 		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
-		NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
+		// NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
+
+		NewWorldObject(g.state, "oneBone.glb", true, generalShader, mgl32.Vec3{0, 2, 5}),
 	)
 	g.state.FinaliseLoad()
 
