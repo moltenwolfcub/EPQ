@@ -573,6 +573,7 @@ type AssimpNodeData struct {
 }
 
 type Animation struct {
+	name           string
 	duration       float32
 	ticksPerSecond int
 	bones          map[string]*Bone
@@ -602,10 +603,13 @@ func NewAnimation(model *Model) *Animation {
 	sceneAnimations := unsafe.Slice(model.scene.mAnimations, model.scene.mNumAnimations)
 	animation := sceneAnimations[0] //TODO i think this only loads the first animation. Adapt for any animation
 
+	a.name = C.GoString(&animation.mName.data[0])
 	a.duration = float32(animation.mDuration)
 	a.ticksPerSecond = int(animation.mTicksPerSecond)
 	a.rootNode = a.readHeirarchyData(model.scene.mRootNode)
 	a.readMissingBones(animation, model)
+
+	// fmt.Println("Animation name: ", a.name)
 
 	return &a
 }

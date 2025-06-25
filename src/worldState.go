@@ -133,11 +133,6 @@ func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, shad
 	if o.hasAnimation {
 		animation := model.NewAnimation(o.model)
 		o.animator = model.NewAnimator(animation)
-
-		o.animator.UpdateAnimation(0)
-		for _, m := range o.animator.GetFinalBoneMatrices() {
-			fmt.Println(m)
-		}
 	}
 
 	return &o
