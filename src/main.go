@@ -79,7 +79,7 @@ func NewGame() *Game {
 		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
 		// NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
 
-		NewWorldObject(g.state, "multiBone.glb", true, generalShader, mgl32.Vec3{0, 1.5, 0}),
+		NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1.5, 0}),
 	)
 	g.state.FinaliseLoad()
 
