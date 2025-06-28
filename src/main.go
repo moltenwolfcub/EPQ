@@ -39,6 +39,15 @@ func NewGame() *Game {
 
 	g.state.Lights = []Light{
 		PointLight{
+			Pos:                  mgl32.Vec3{0, 0, 0},
+			Ambient:              mgl32.Vec3{1, 1, 1},
+			Diffuse:              mgl32.Vec3{0, 0, 0},
+			Specular:             mgl32.Vec3{0, 0, 0},
+			ConstantAttenuation:  1.0,
+			LinearAttenuation:    0,
+			QuadraticAttenuation: 0,
+		},
+		PointLight{
 			Pos:                  mgl32.Vec3{-2, 5, -2},
 			Ambient:              mgl32.Vec3{0, 0, 0},
 			Diffuse:              mgl32.Vec3{0.3, 0.5, 1},
@@ -78,8 +87,9 @@ func NewGame() *Game {
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
 		// NewWorldObject(g.state, "dancing_vampire.dae", true, generalShader, mgl32.Vec3{0, 1.3, 0}),
+		NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
 
-		NewWorldObject(g.state, "simpleAnimation1.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
+		NewWorldObject(g.state, "player.glb", true, generalShader, mgl32.Vec3{0, 2, 5}),
 	)
 	g.state.FinaliseLoad()
 
