@@ -12,6 +12,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 uniform mat4 finalBonesMatrices[MAX_BONES];
+uniform bool hasAnimation;
 
 layout(std430, binding = 0) buffer BoneIDBuffer {
 	int boneIDs[];
@@ -27,26 +28,29 @@ out vec2 texCoord;
 void main() {
 	vec4 riggedPos = vec4(0);
 
-	bool hasBone = false;
+	if (hasAnimation) {
+		bool hasBone = false;
+		for(int i = 0; i < aBoneCount; i++) {
+			int boneIndex = boneIDs[aBoneOffset + i];
+			float weight = boneWeights[aBoneOffset + i];
+			if(boneIndex < 0) {
+				continue;
+			} else {
+				hasBone = true;
+			}
+			if(boneIndex >= MAX_BONES) {
+				riggedPos = vec4(aPos, 1);
+				break;
+			}
 
-	for(int i = 0; i < aBoneCount; i++) {
-		int boneIndex = boneIDs[aBoneOffset + i];
-		float weight = boneWeights[aBoneOffset + i];
-		if(boneIndex < 0) {
-			continue;
-		} else {
-			hasBone = true;
+			vec4 localPos = finalBonesMatrices[boneIndex] * vec4(aPos, 1);
+			riggedPos += localPos * weight;
 		}
-		if(boneIndex >= MAX_BONES) {
+
+		if (!hasBone) {
 			riggedPos = vec4(aPos, 1);
-			break;
 		}
-
-		vec4 localPos = finalBonesMatrices[boneIndex] * vec4(aPos, 1);
-		riggedPos += localPos * weight;
-	}
-
-	if (!hasBone) {
+	} else {
 		riggedPos = vec4(aPos, 1);
 	}
 

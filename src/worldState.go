@@ -169,6 +169,7 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 		panic("Lighting was never bound on state")
 	}
 
+	o.shader.SetBool("hasAnimation", o.hasAnimation)
 	if o.hasAnimation {
 		transforms := o.animator.GetFinalBoneMatrices()
 		for i, mat := range transforms {
