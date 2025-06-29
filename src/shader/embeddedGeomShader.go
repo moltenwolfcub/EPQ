@@ -33,20 +33,14 @@ func CreateProgramWithGeom(vertShader string, fragShader string, geomShader stri
 }
 
 type EmbeddedShaderWithGeom struct {
-	id         ProgramID
-	vertShader string
-	fragShader string
-	geomShader string
+	id ProgramID
 }
 
 func NewEmbeddedShaderWithGeom(vertShader string, fragShader string, geomShader string) *EmbeddedShaderWithGeom {
 	id := CreateProgramWithGeom(vertShader, fragShader, geomShader)
 
 	s := EmbeddedShaderWithGeom{
-		id:         id,
-		vertShader: vertShader,
-		fragShader: fragShader,
-		geomShader: geomShader,
+		id: id,
 	}
 
 	return &s

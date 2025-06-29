@@ -6,18 +6,14 @@ import (
 )
 
 type EmbeddedShader struct {
-	id         ProgramID
-	vertShader string
-	fragShader string
+	id ProgramID
 }
 
 func NewEmbeddedShader(vertShader string, fragShader string) *EmbeddedShader {
 	id := CreateProgramFromShaders(vertShader, fragShader)
 
 	s := EmbeddedShader{
-		id:         id,
-		vertShader: vertShader,
-		fragShader: fragShader,
+		id: id,
 	}
 
 	return &s
