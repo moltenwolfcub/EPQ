@@ -55,7 +55,7 @@ void main() {
 	}
 
 	gl_Position = proj * view * model * riggedPos;
-	normal = mat3(transpose(inverse(model))) * aNormal;
+	normal = mat3(transpose(inverse(view))) * aNormal;
 	fragPos = vec3(model * riggedPos);
 	texCoord = aTexCoord;
 }

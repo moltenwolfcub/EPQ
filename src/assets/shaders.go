@@ -25,4 +25,8 @@ var (
 
 	GeneralVert string = MustLoadShader("general.vert")
 	GeneralFrag string = MustLoadShader("general.frag")
+
+	NormViewVert string = MustLoadShader("normalViewer.vert")
+	NormViewFrag string = MustLoadShader("normalViewer.frag")
+	NormViewGeom string = MustLoadShader("normalViewer.geom")
 )

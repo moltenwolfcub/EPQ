@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 )
@@ -109,25 +110,29 @@ type WorldObject struct {
 
 	shader   shader.Shader
 	modelMat mgl32.Mat4
+
+	normalShader shader.Shader
 }
 
-func NewWorldObjectFromModel(state *WorldState, m *model.Model, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
+func NewWorldObjectFromModel(state *WorldState, m *model.Model, s shader.Shader, pos mgl32.Vec3) *WorldObject {
 	return &WorldObject{
 		state:        state,
 		model:        m,
 		hasAnimation: false,
-		shader:       shader,
+		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
+		normalShader: shader.NewEmbeddedShaderWithGeom(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 }
 
-func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, shader shader.Shader, pos mgl32.Vec3) *WorldObject {
+func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, s shader.Shader, pos mgl32.Vec3) *WorldObject {
 	o := WorldObject{
 		state:        state,
 		model:        model.NewModel(modelFile, hasAnimation),
 		hasAnimation: hasAnimation,
-		shader:       shader,
+		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
+		normalShader: shader.NewEmbeddedShaderWithGeom(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 
 	if o.hasAnimation {
@@ -177,6 +182,16 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 		}
 	}
 	o.model.Draw(o.shader)
+}
+
+func (o WorldObject) DrawWithNormals(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
+	o.Draw(proj, view, camPos)
+
+	o.normalShader.Use()
+	o.normalShader.SetMatrix4("proj", proj)
+	o.normalShader.SetMatrix4("view", view)
+	o.normalShader.SetMatrix4("model", o.modelMat)
+	o.model.Draw(o.normalShader)
 }
 
 type Light interface {
