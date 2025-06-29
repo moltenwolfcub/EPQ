@@ -11,13 +11,30 @@ import (
 type ProgramID uint32
 type ShaderID uint32
 
-func CreateProgram(vertPath string, fragPath string) ProgramID {
-	vert := LoadShader(vertPath, gl.VERTEX_SHADER)
-	frag := LoadShader(fragPath, gl.FRAGMENT_SHADER)
+func CreateProgram(vertPath string, fragPath string, geomPath string) ProgramID {
+	var vert, frag, geom ShaderID
+	if vertPath != "" {
+		vert = LoadShader(vertPath, gl.VERTEX_SHADER)
+	}
+	if fragPath != "" {
+		frag = LoadShader(fragPath, gl.FRAGMENT_SHADER)
+	}
+	if geomPath != "" {
+		geom = LoadShader(geomPath, gl.GEOMETRY_SHADER)
+	}
 
 	shaderProgram := gl.CreateProgram()
-	gl.AttachShader(shaderProgram, uint32(vert))
-	gl.AttachShader(shaderProgram, uint32(frag))
+
+	if vertPath != "" {
+		gl.AttachShader(shaderProgram, uint32(vert))
+	}
+	if fragPath != "" {
+		gl.AttachShader(shaderProgram, uint32(frag))
+	}
+	if geomPath != "" {
+		gl.AttachShader(shaderProgram, uint32(geom))
+	}
+
 	gl.LinkProgram(shaderProgram)
 	var success int32
 	gl.GetProgramiv(shaderProgram, gl.LINK_STATUS, &success)
@@ -44,13 +61,30 @@ func LoadShader(path string, shaderType uint32) ShaderID {
 	return shaderId
 }
 
-func CreateProgramFromShaders(vertShader string, fragShader string) ProgramID {
-	vert := CreateShader(vertShader, gl.VERTEX_SHADER)
-	frag := CreateShader(fragShader, gl.FRAGMENT_SHADER)
+func CreateProgramFromShaders(vertShader string, fragShader string, geomShader string) ProgramID {
+	var vert, frag, geom ShaderID
+	if vertShader != "" {
+		vert = CreateShader(vertShader, gl.VERTEX_SHADER)
+	}
+	if fragShader != "" {
+		frag = CreateShader(fragShader, gl.FRAGMENT_SHADER)
+	}
+	if geomShader != "" {
+		geom = CreateShader(geomShader, gl.GEOMETRY_SHADER)
+	}
 
 	shaderProgram := gl.CreateProgram()
-	gl.AttachShader(shaderProgram, uint32(vert))
-	gl.AttachShader(shaderProgram, uint32(frag))
+
+	if vertShader != "" {
+		gl.AttachShader(shaderProgram, uint32(vert))
+	}
+	if fragShader != "" {
+		gl.AttachShader(shaderProgram, uint32(frag))
+	}
+	if geomShader != "" {
+		gl.AttachShader(shaderProgram, uint32(geom))
+	}
+
 	gl.LinkProgram(shaderProgram)
 	var success int32
 	gl.GetProgramiv(shaderProgram, gl.LINK_STATUS, &success)

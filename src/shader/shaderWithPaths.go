@@ -18,7 +18,7 @@ type ShaderWithPaths struct {
 }
 
 func NewShaderFromFilePaths(vertPath string, fragPath string) *ShaderWithPaths {
-	id := CreateProgram(vertPath, fragPath)
+	id := CreateProgram(vertPath, fragPath, "")
 
 	s := ShaderWithPaths{
 		id:       id,
@@ -48,7 +48,7 @@ func (s *ShaderWithPaths) CheckShadersForChanges() {
 			fmt.Printf("A fragment shader file has been modified: %s\n", s.fragPath)
 			s.fragModTime = fragModTime
 		}
-		id := CreateProgram(s.vertPath, s.fragPath)
+		id := CreateProgram(s.vertPath, s.fragPath, "")
 
 		gl.DeleteProgram(uint32(s.id))
 		s.id = id

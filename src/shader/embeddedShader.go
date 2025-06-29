@@ -9,8 +9,17 @@ type EmbeddedShader struct {
 	id ProgramID
 }
 
-func NewEmbeddedShader(vertShader string, fragShader string) *EmbeddedShader {
-	id := CreateProgramFromShaders(vertShader, fragShader)
+func NewEmbeddedShaderVF(vertShader string, fragShader string) *EmbeddedShader {
+	id := CreateProgramFromShaders(vertShader, fragShader, "")
+
+	s := EmbeddedShader{
+		id: id,
+	}
+
+	return &s
+}
+func NewEmbeddedShaderVFG(vertShader string, fragShader string, geomShader string) *EmbeddedShader {
+	id := CreateProgramFromShaders(vertShader, fragShader, geomShader)
 
 	s := EmbeddedShader{
 		id: id,

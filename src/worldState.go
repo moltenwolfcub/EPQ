@@ -121,7 +121,7 @@ func NewWorldObjectFromModel(state *WorldState, m *model.Model, s shader.Shader,
 		hasAnimation: false,
 		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
-		normalShader: shader.NewEmbeddedShaderWithGeom(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
+		normalShader: shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 }
 
@@ -132,7 +132,7 @@ func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, s sh
 		hasAnimation: hasAnimation,
 		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
-		normalShader: shader.NewEmbeddedShaderWithGeom(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
+		normalShader: shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 
 	if o.hasAnimation {
