@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 )
@@ -110,8 +109,6 @@ type WorldObject struct {
 
 	shader   shader.Shader
 	modelMat mgl32.Mat4
-
-	normalShader shader.Shader
 }
 
 func NewWorldObjectFromModel(state *WorldState, m *model.Model, s shader.Shader, pos mgl32.Vec3) *WorldObject {
@@ -121,7 +118,6 @@ func NewWorldObjectFromModel(state *WorldState, m *model.Model, s shader.Shader,
 		hasAnimation: false,
 		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
-		normalShader: shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 }
 
@@ -132,7 +128,6 @@ func NewWorldObject(state *WorldState, modelFile string, hasAnimation bool, s sh
 		hasAnimation: hasAnimation,
 		shader:       s,
 		modelMat:     mgl32.Translate3D(pos.Elem()),
-		normalShader: shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom),
 	}
 
 	if o.hasAnimation {
@@ -184,14 +179,16 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.model.Draw(o.shader)
 }
 
+var normalShader shader.Shader //initialised in main
+
 func (o WorldObject) DrawWithNormals(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.Draw(proj, view, camPos)
 
-	o.normalShader.Use()
-	o.normalShader.SetMatrix4("proj", proj)
-	o.normalShader.SetMatrix4("view", view)
-	o.normalShader.SetMatrix4("model", o.modelMat)
-	o.model.Draw(o.normalShader)
+	normalShader.Use()
+	normalShader.SetMatrix4("proj", proj)
+	normalShader.SetMatrix4("view", view)
+	normalShader.SetMatrix4("model", o.modelMat)
+	o.model.Draw(normalShader)
 }
 
 type Light interface {

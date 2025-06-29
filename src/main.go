@@ -29,9 +29,10 @@ func NewGame() *Game {
 	g.renderer = NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	orangeShader := shader.Shader(shader.NewEmbeddedShaderVF(assets.OrangeVert, assets.OrangeFrag))
-	blueShader := shader.Shader(shader.NewEmbeddedShaderVF(assets.BlueVert, assets.BlueFrag))
-	generalShader := shader.Shader(shader.NewEmbeddedShaderVF(assets.GeneralVert, assets.GeneralFrag))
+	normalShader = shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom)
+	orangeShader := shader.NewEmbeddedShaderVF(assets.OrangeVert, assets.OrangeFrag)
+	blueShader := shader.NewEmbeddedShaderVF(assets.BlueVert, assets.BlueFrag)
+	generalShader := shader.NewEmbeddedShaderVF(assets.GeneralVert, assets.GeneralFrag)
 
 	cube := model.NewCubeModel(0.5)
 
