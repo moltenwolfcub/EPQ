@@ -88,9 +88,8 @@ func NewGame() *Game {
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
 		NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
-
-		NewWorldObject(g.state, "player.glb", true, generalShader, mgl32.Vec3{0, 2, -5}),
 	)
+	g.state.Player = NewPlayer(g.state, generalShader)
 	g.state.FinaliseLoad()
 
 	g.playerPos = mgl32.Vec3{}
@@ -113,6 +112,7 @@ func (g *Game) runGame() {
 			return
 		}
 
+		g.state.Player.Update(deltaTime)
 		for _, object := range g.state.Objects {
 			object.Update(deltaTime)
 		}

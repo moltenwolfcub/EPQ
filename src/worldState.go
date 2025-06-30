@@ -15,6 +15,8 @@ type WorldState struct {
 	Objects []*WorldObject
 	Lights  []Light
 
+	Player *Player
+
 	lightingSSBO uint32
 }
 
@@ -29,6 +31,7 @@ func NewWorldState() *WorldState {
 }
 
 func (s *WorldState) FinaliseLoad() {
+	s.Player.finaliseLoad()
 	for _, o := range s.Objects {
 		o.finaliseLoad()
 	}
