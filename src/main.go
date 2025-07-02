@@ -19,8 +19,7 @@ type Game struct {
 
 	keyboardState []uint8
 
-	state     *WorldState
-	playerPos mgl32.Vec3
+	state *WorldState
 }
 
 func NewGame() *Game {
@@ -92,8 +91,6 @@ func NewGame() *Game {
 	g.state.Player = NewPlayer(g.state, generalShader)
 	g.state.FinaliseLoad()
 
-	g.playerPos = mgl32.Vec3{}
-
 	return &g
 }
 
@@ -122,9 +119,9 @@ func (g *Game) runGame() {
 			float32(g.keyboardState[sdl.SCANCODE_KP_0]) - float32(g.keyboardState[sdl.SCANCODE_RCTRL]),
 			float32(g.keyboardState[sdl.SCANCODE_UP]) - float32(g.keyboardState[sdl.SCANCODE_DOWN]),
 		}
-		g.playerPos = g.playerPos.Add(translationVec.Mul(MOVEMENT_SPEED))
+		g.renderer.camera.Pos = g.renderer.camera.Pos.Add(translationVec.Mul(MOVEMENT_SPEED))
 
-		g.renderer.Draw(g.playerPos, g.state)
+		g.renderer.Draw(g.state)
 	}
 }
 

@@ -71,11 +71,11 @@ func (r *Renderer) alignCamera(focus mgl32.Vec3) {
 	r.camera.Pos = newPos
 }
 
-func (r *Renderer) Draw(playerPos mgl32.Vec3, world *WorldState) {
+func (r *Renderer) Draw(world *WorldState) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	r.alignCamera(playerPos)
+	// r.alignCamera(playerPos)
 	proj, view := r.camera.GetMatricies()
 
 	world.Player.Draw(proj, view, r.camera.Pos)
