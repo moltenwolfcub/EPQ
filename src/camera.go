@@ -29,7 +29,7 @@ func (c *Camera) preCalculateMatricies() {
 
 // gets the projection and view matricies
 func (c *Camera) GetMatricies() (proj mgl32.Mat4, view mgl32.Mat4) {
-	translatedViewMat := c.viewMat.Mul4(mgl32.Translate3D(c.Pos.Elem()))
+	translatedViewMat := c.viewMat.Mul4(mgl32.Translate3D(c.Pos.Mul(-1).Elem()))
 
 	return c.projMat, translatedViewMat
 }

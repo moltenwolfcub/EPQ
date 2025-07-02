@@ -66,7 +66,7 @@ func (r *Renderer) Resize(nexX, newY int32) {
 }
 
 func (r *Renderer) alignCamera(world *WorldState) {
-	newPos := world.Player.pos.Add(mgl32.Vec3{-10, -10, -10})
+	newPos := world.Player.pos.Add(mgl32.Vec3{10, 10, 10})
 	r.camera.Pos = newPos
 }
 
