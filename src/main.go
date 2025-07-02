@@ -20,6 +20,9 @@ type Game struct {
 	keyboardState []uint8
 
 	state *WorldState
+
+	camPos         mgl32.Vec3
+	detachedCamera bool
 }
 
 func NewGame() *Game {
@@ -91,6 +94,9 @@ func NewGame() *Game {
 	g.state.Player = NewPlayer(g.state, generalShader)
 	g.state.FinaliseLoad()
 
+	g.detachedCamera = false
+	g.alignCamera()
+
 	return &g
 }
 
@@ -119,10 +125,25 @@ func (g *Game) runGame() {
 			float32(g.keyboardState[sdl.SCANCODE_SPACE]) - float32(g.keyboardState[sdl.SCANCODE_LSHIFT]),
 			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
 		}
-		g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(MOVEMENT_SPEED))
+		if g.detachedCamera {
+			deltaPos := translationVec.Mul(MOVEMENT_SPEED)
+			deltaPos = mgl32.Vec3{
+				-deltaPos.X(),
+				deltaPos.Y(),
+				-deltaPos.Z(),
+			}
+			g.camPos = g.camPos.Add(deltaPos)
+		} else {
+			g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(MOVEMENT_SPEED))
+			g.alignCamera()
+		}
 
-		g.renderer.Draw(g.state)
+		g.renderer.Draw(g.camPos, g.state)
 	}
+}
+
+func (g *Game) alignCamera() {
+	g.camPos = g.state.Player.pos.Add(mgl32.Vec3{10, 10, 10})
 }
 
 func (g *Game) handleEvents() int {
@@ -133,6 +154,13 @@ func (g *Game) handleEvents() int {
 		case *sdl.WindowEvent:
 			if event.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
 				g.renderer.Resize(event.Data1, event.Data2)
+			}
+		case *sdl.KeyboardEvent:
+			if event.Type == sdl.KEYDOWN {
+				switch event.Keysym.Sym {
+				case sdl.K_TAB:
+					g.detachedCamera = !g.detachedCamera
+				}
 			}
 		}
 	}

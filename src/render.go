@@ -65,16 +65,11 @@ func (r *Renderer) Resize(nexX, newY int32) {
 	r.camera.preCalculateMatricies()
 }
 
-func (r *Renderer) alignCamera(world *WorldState) {
-	newPos := world.Player.pos.Add(mgl32.Vec3{10, 10, 10})
-	r.camera.Pos = newPos
-}
-
-func (r *Renderer) Draw(world *WorldState) {
+func (r *Renderer) Draw(camPos mgl32.Vec3, world *WorldState) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	r.alignCamera(world)
+	r.camera.Pos = camPos
 	proj, view := r.camera.GetMatricies()
 
 	world.Player.Draw(proj, view, r.camera.Pos)
