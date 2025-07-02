@@ -115,13 +115,6 @@ func (g *Game) runGame() {
 		}
 
 		translationVec := mgl32.Vec3{
-			float32(g.keyboardState[sdl.SCANCODE_LEFT]) - float32(g.keyboardState[sdl.SCANCODE_RIGHT]),
-			float32(g.keyboardState[sdl.SCANCODE_KP_0]) - float32(g.keyboardState[sdl.SCANCODE_RCTRL]),
-			float32(g.keyboardState[sdl.SCANCODE_UP]) - float32(g.keyboardState[sdl.SCANCODE_DOWN]),
-		}
-		g.renderer.camera.Pos = g.renderer.camera.Pos.Add(translationVec.Mul(MOVEMENT_SPEED))
-
-		translationVec = mgl32.Vec3{
 			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),
 			float32(g.keyboardState[sdl.SCANCODE_SPACE]) - float32(g.keyboardState[sdl.SCANCODE_LSHIFT]),
 			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
