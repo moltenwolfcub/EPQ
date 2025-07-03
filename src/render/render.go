@@ -8,8 +8,7 @@ import (
 )
 
 type Renderer struct {
-	window     *sdl.Window
-	destructor func()
+	window *sdl.Window
 
 	camera *camera
 }
@@ -51,10 +50,6 @@ func (r *Renderer) setupWindow() {
 	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 
 	r.window = window
-	r.destructor = func() {
-		sdl.Quit()
-		window.Destroy()
-	}
 }
 
 func (r *Renderer) Resize(nexX, newY int32) {
@@ -73,7 +68,6 @@ func (r *Renderer) Draw(camPos mgl32.Vec3, world []Renderable) {
 	r.camera.pos = camPos
 	proj, view := r.camera.getMatricies()
 
-	// world.Player.Draw(proj, view, r.camera.Pos)
 	for _, obj := range world {
 		obj.Draw(proj, view, r.camera.pos)
 	}
@@ -82,7 +76,8 @@ func (r *Renderer) Draw(camPos mgl32.Vec3, world []Renderable) {
 }
 
 func (r *Renderer) Close() {
-	r.destructor()
+	sdl.Quit()
+	r.window.Destroy()
 }
 
 type Renderable interface {
