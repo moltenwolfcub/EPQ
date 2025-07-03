@@ -1,6 +1,9 @@
-package main
+package render
 
-import "github.com/go-gl/mathgl/mgl32"
+import (
+	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/settings"
+)
 
 type Camera struct {
 	Pos mgl32.Vec3
@@ -17,12 +20,12 @@ func NewCamera() *Camera {
 }
 
 func (c *Camera) preCalculateMatricies() {
-	aspectRatio := float32(WINDOW_WIDTH) / float32(WINDOW_HEIGHT)
+	aspectRatio := float32(settings.WINDOW_WIDTH) / float32(settings.WINDOW_HEIGHT)
 
-	if DEBUG_PERSPECTIVE {
+	if settings.DEBUG_PERSPECTIVE {
 		c.projMat = mgl32.Perspective(45, aspectRatio, 0.1, 100)
 	} else {
-		c.projMat = mgl32.Ortho(-aspectRatio*ORTHO_SCALE/2, aspectRatio*ORTHO_SCALE/2, -ORTHO_SCALE/2, ORTHO_SCALE/2, 0.1, 100)
+		c.projMat = mgl32.Ortho(-aspectRatio*settings.ORTHO_SCALE/2, aspectRatio*settings.ORTHO_SCALE/2, -settings.ORTHO_SCALE/2, settings.ORTHO_SCALE/2, 0.1, 100)
 	}
 	c.viewMat = mgl32.HomogRotate3DX(mgl32.DegToRad(30)).Mul4(mgl32.HomogRotate3DY(mgl32.DegToRad(-45)))
 }

@@ -10,12 +10,14 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
+	"github.com/moltenwolfcub/EPQ/src/render"
+	"github.com/moltenwolfcub/EPQ/src/settings"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Game struct {
-	renderer *Renderer
+	renderer *render.Renderer
 
 	keyboardState []uint8
 
@@ -28,7 +30,7 @@ type Game struct {
 func NewGame() *Game {
 	g := Game{}
 
-	g.renderer = NewRenderer()
+	g.renderer = render.NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
 	normalShader = shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom)
@@ -126,7 +128,7 @@ func (g *Game) runGame() {
 			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
 		}
 		if g.detachedCamera {
-			deltaPos := translationVec.Mul(MOVEMENT_SPEED)
+			deltaPos := translationVec.Mul(settings.MOVEMENT_SPEED)
 			deltaPos = mgl32.Vec3{
 				-deltaPos.X(),
 				deltaPos.Y(),
@@ -134,11 +136,11 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(MOVEMENT_SPEED))
+			g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(settings.MOVEMENT_SPEED))
 			g.alignCamera()
 		}
 
-		g.renderer.Draw(g.camPos, g.state)
+		g.renderer.Draw(g.camPos, g.state.ToRender())
 	}
 }
 

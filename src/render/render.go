@@ -1,8 +1,9 @@
-package main
+package render
 
 import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/settings"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -33,9 +34,9 @@ func (r *Renderer) setupWindow() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 6)
 
 	window, err := sdl.CreateWindow(
-		WINDOW_TITLE,
+		settings.WINDOW_TITLE,
 		sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
-		WINDOW_WIDTH, WINDOW_HEIGHT,
+		settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT,
 		sdl.WINDOW_OPENGL|sdl.WINDOW_RESIZABLE,
 	)
 
@@ -57,23 +58,23 @@ func (r *Renderer) setupWindow() {
 }
 
 func (r *Renderer) Resize(nexX, newY int32) {
-	WINDOW_WIDTH = nexX
-	WINDOW_HEIGHT = newY
+	settings.WINDOW_WIDTH = nexX
+	settings.WINDOW_HEIGHT = newY
 
-	gl.Viewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+	gl.Viewport(0, 0, settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT)
 
 	r.camera.preCalculateMatricies()
 }
 
-func (r *Renderer) Draw(camPos mgl32.Vec3, world *WorldState) {
+func (r *Renderer) Draw(camPos mgl32.Vec3, world []Renderable) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	r.camera.Pos = camPos
 	proj, view := r.camera.GetMatricies()
 
-	world.Player.Draw(proj, view, r.camera.Pos)
-	for _, obj := range world.Objects {
+	// world.Player.Draw(proj, view, r.camera.Pos)
+	for _, obj := range world {
 		obj.Draw(proj, view, r.camera.Pos)
 	}
 
@@ -82,4 +83,8 @@ func (r *Renderer) Draw(camPos mgl32.Vec3, world *WorldState) {
 
 func (r *Renderer) Close() {
 	r.destructor()
+}
+
+type Renderable interface {
+	Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3)
 }

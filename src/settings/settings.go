@@ -1,4 +1,4 @@
-package main
+package settings
 
 const (
 	WINDOW_TITLE string = "EPQ project"

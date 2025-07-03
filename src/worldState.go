@@ -8,6 +8,7 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/model"
+	"github.com/moltenwolfcub/EPQ/src/render"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 )
 
@@ -101,6 +102,18 @@ func (s *WorldState) BindLights() {
 
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, s.lightingSSBO)
 	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(internalLights)*int(unsafe.Sizeof(internalLight{})), gl.Ptr(internalLights), gl.STATIC_DRAW)
+}
+
+func (w WorldState) ToRender() []render.Renderable {
+	r := make([]render.Renderable, 0, len(w.Objects)+1)
+
+	for _, obj := range w.Objects {
+		r = append(r, obj)
+	}
+
+	r = append(r, w.Player)
+
+	return r
 }
 
 type WorldObject struct {
