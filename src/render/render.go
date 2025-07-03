@@ -11,15 +11,15 @@ type Renderer struct {
 	window     *sdl.Window
 	destructor func()
 
-	camera *Camera
+	camera *camera
 }
 
 func NewRenderer() *Renderer {
 	r := &Renderer{}
 	r.setupWindow()
 
-	r.camera = NewCamera()
-	r.camera.Pos = mgl32.Vec3{-10, -10, -10}
+	r.camera = newCamera()
+	r.camera.pos = mgl32.Vec3{-10, -10, -10}
 
 	return r
 }
@@ -70,12 +70,12 @@ func (r *Renderer) Draw(camPos mgl32.Vec3, world []Renderable) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	r.camera.Pos = camPos
-	proj, view := r.camera.GetMatricies()
+	r.camera.pos = camPos
+	proj, view := r.camera.getMatricies()
 
 	// world.Player.Draw(proj, view, r.camera.Pos)
 	for _, obj := range world {
-		obj.Draw(proj, view, r.camera.Pos)
+		obj.Draw(proj, view, r.camera.pos)
 	}
 
 	r.window.GLSwap()

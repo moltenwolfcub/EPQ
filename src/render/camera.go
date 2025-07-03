@@ -5,21 +5,21 @@ import (
 	"github.com/moltenwolfcub/EPQ/src/settings"
 )
 
-type Camera struct {
-	Pos mgl32.Vec3
+type camera struct {
+	pos mgl32.Vec3
 
 	projMat mgl32.Mat4
 	viewMat mgl32.Mat4
 }
 
-func NewCamera() *Camera {
-	c := &Camera{}
+func newCamera() *camera {
+	c := &camera{}
 	c.preCalculateMatricies()
 
 	return c
 }
 
-func (c *Camera) preCalculateMatricies() {
+func (c *camera) preCalculateMatricies() {
 	aspectRatio := float32(settings.WINDOW_WIDTH) / float32(settings.WINDOW_HEIGHT)
 
 	if settings.DEBUG_PERSPECTIVE {
@@ -31,8 +31,8 @@ func (c *Camera) preCalculateMatricies() {
 }
 
 // gets the projection and view matricies
-func (c *Camera) GetMatricies() (proj mgl32.Mat4, view mgl32.Mat4) {
-	translatedViewMat := c.viewMat.Mul4(mgl32.Translate3D(c.Pos.Mul(-1).Elem()))
+func (c *camera) getMatricies() (proj mgl32.Mat4, view mgl32.Mat4) {
+	translatedViewMat := c.viewMat.Mul4(mgl32.Translate3D(c.pos.Mul(-1).Elem()))
 
 	return c.projMat, translatedViewMat
 }
