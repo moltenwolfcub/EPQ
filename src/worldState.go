@@ -164,7 +164,7 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.shader.SetMatrix4("proj", proj)
 	o.shader.SetMatrix4("view", view)
 	o.shader.SetMatrix4("model", o.modelMat)
-	o.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
+	o.shader.SetVec3("camera", camPos)
 
 	if o.state.lightingSSBO != 0 {
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 2, o.state.lightingSSBO)
