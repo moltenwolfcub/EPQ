@@ -16,6 +16,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install C libraries
+      run: sudo apt install -y libsdl2-dev libgl1-mesa-dev
+
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
