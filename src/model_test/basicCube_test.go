@@ -14,8 +14,6 @@ func TestBCMeshCount(t *testing.T) {
 	if len(m.Meshes) != 1 {
 		t.Errorf("NewModel(basicCube): len(meshes). Got %d meshes. Want 1.", len(m.Meshes))
 	}
-
-	t.Errorf("FORCED BROKEN FOR TESTING")
 }
 
 func TestBCMeshVertexCount(t *testing.T) {
