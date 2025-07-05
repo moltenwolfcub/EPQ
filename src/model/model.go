@@ -31,7 +31,7 @@ func getRawModel(path *C.char, size *C.int) *C.char {
 	return (*C.char)(C.CBytes(data))
 }
 
-func Mat4assimp2mgl(mat C.struct_aiMatrix4x4) mgl32.Mat4 {
+func mat4assimp2mgl(mat C.struct_aiMatrix4x4) mgl32.Mat4 {
 	return mgl32.Mat4{
 		float32(mat.a1), float32(mat.b1), float32(mat.c1), float32(mat.d1),
 		float32(mat.a2), float32(mat.b2), float32(mat.c2), float32(mat.d2),
@@ -40,7 +40,7 @@ func Mat4assimp2mgl(mat C.struct_aiMatrix4x4) mgl32.Mat4 {
 	}
 }
 
-func Lerp(x mgl32.Vec3, y mgl32.Vec3, a float32) mgl32.Vec3 {
+func lerp(x mgl32.Vec3, y mgl32.Vec3, a float32) mgl32.Vec3 {
 	return x.Mul(1 - a).Add(y.Mul(a))
 }
 
@@ -185,7 +185,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mes
 			if !ok {
 				newInfo := BoneInfo{
 					Id:     m.boneCounter,
-					Offset: Mat4assimp2mgl(bone.mOffsetMatrix),
+					Offset: mat4assimp2mgl(bone.mOffsetMatrix),
 				}
 				m.boneInfoMap[boneName] = newInfo
 				boneId = m.boneCounter
@@ -290,7 +290,7 @@ func (m *Model) loadMaterialTextures(mat *C.struct_aiMaterial, texture_type C.en
 			textures = append(textures, tex)
 		} else {
 			var texture Texture
-			texture.img = TextureFromFile(path, m.textureDirectory)
+			texture.img = textureFromFile(path, m.textureDirectory)
 			texture.TextureType = typeName
 			texture.Path = path
 
@@ -307,7 +307,7 @@ type _img struct {
 	pixArray      []uint8
 }
 
-func TextureFromFile(path, directory string) _img {
+func textureFromFile(path, directory string) _img {
 	loc := fmt.Sprintf("%s/%s", directory, path)
 	loadedImage := assets.MustLoadSDLImage(loc)
 
@@ -625,7 +625,7 @@ func (a Animation) FindBone(name string) *Bone {
 func (a Animation) readHeirarchyData(src *C.struct_aiNode) *AssimpNodeData {
 	dest := AssimpNodeData{
 		name:           C.GoString(&src.mName.data[0]),
-		transformation: Mat4assimp2mgl(src.mTransformation),
+		transformation: mat4assimp2mgl(src.mTransformation),
 		children:       make([]*AssimpNodeData, 0, int(src.mNumChildren)),
 	}
 
@@ -803,7 +803,7 @@ func (b *Bone) interpolatePosition(animationTime float32) mgl32.Mat4 {
 	p1Index := p0Index + 1
 	scaleFactor := b.getScaleFactor(b.positions[p0Index].timeStamp, b.positions[p1Index].timeStamp, animationTime)
 
-	finalPos := Lerp(b.positions[p0Index].pos, b.positions[p1Index].pos, scaleFactor)
+	finalPos := lerp(b.positions[p0Index].pos, b.positions[p1Index].pos, scaleFactor)
 	return mgl32.Translate3D(finalPos.Elem())
 }
 func (b *Bone) interpolateRotation(animationTime float32) mgl32.Mat4 {
@@ -825,6 +825,6 @@ func (b *Bone) interpolateScaling(animationTime float32) mgl32.Mat4 {
 	p1Index := p0Index + 1
 	scaleFactor := b.getScaleFactor(b.scales[p0Index].timeStamp, b.scales[p1Index].timeStamp, animationTime)
 
-	finalScale := Lerp(b.scales[p0Index].scale, b.scales[p1Index].scale, scaleFactor)
+	finalScale := lerp(b.scales[p0Index].scale, b.scales[p1Index].scale, scaleFactor)
 	return mgl32.Scale3D(finalScale.Elem())
 }
