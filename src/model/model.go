@@ -740,6 +740,10 @@ func (b *Bone) Update(animationTime float32) {
 
 // binary search to find position keyframe index directly before animationTime
 func (b Bone) GetPositionIndex(animationTime float32) int {
+	if b.positions[len(b.positions)-1].timeStamp < animationTime {
+		return len(b.positions) - 1
+	}
+
 	low, high := 0, len(b.positions)-2
 	for low <= high {
 		mid := (low + high) / 2
@@ -757,6 +761,10 @@ func (b Bone) GetPositionIndex(animationTime float32) int {
 
 // binary search to find rotation keyframe index directly before animationTime
 func (b Bone) GetRotationIndex(animationTime float32) int {
+	if b.rotations[len(b.rotations)-1].timeStamp < animationTime {
+		return len(b.rotations) - 1
+	}
+
 	low, high := 0, len(b.rotations)-2
 	for low <= high {
 		mid := (low + high) / 2
@@ -774,6 +782,10 @@ func (b Bone) GetRotationIndex(animationTime float32) int {
 
 // binary search to find scaling keyframe index directly before animationTime
 func (b Bone) GetScaleIndex(animationTime float32) int {
+	if b.scales[len(b.scales)-1].timeStamp < animationTime {
+		return len(b.scales) - 1
+	}
+
 	low, high := 0, len(b.scales)-2
 	for low <= high {
 		mid := (low + high) / 2
@@ -800,6 +812,11 @@ func (b *Bone) interpolatePosition(animationTime float32) mgl32.Mat4 {
 		return mgl32.Translate3D(b.positions[0].pos.Elem())
 	}
 	p0Index := b.GetPositionIndex(animationTime)
+	if p0Index == len(b.positions)-1 {
+		finalPos := b.positions[p0Index].pos
+		return mgl32.Translate3D(finalPos.Elem())
+	}
+
 	p1Index := p0Index + 1
 	scaleFactor := b.getScaleFactor(b.positions[p0Index].timeStamp, b.positions[p1Index].timeStamp, animationTime)
 
@@ -811,6 +828,11 @@ func (b *Bone) interpolateRotation(animationTime float32) mgl32.Mat4 {
 		return b.rotations[0].rot.Normalize().Mat4()
 	}
 	p0Index := b.GetRotationIndex(animationTime)
+	if p0Index == len(b.rotations)-1 {
+		finalRotation := b.rotations[p0Index].rot
+		return finalRotation.Normalize().Mat4()
+	}
+
 	p1Index := p0Index + 1
 	scaleFactor := b.getScaleFactor(b.rotations[p0Index].timeStamp, b.rotations[p1Index].timeStamp, animationTime)
 
@@ -822,6 +844,11 @@ func (b *Bone) interpolateScaling(animationTime float32) mgl32.Mat4 {
 		return mgl32.Scale3D(b.scales[0].scale.Elem())
 	}
 	p0Index := b.GetScaleIndex(animationTime)
+	if p0Index == len(b.scales)-1 {
+		finalScale := b.scales[p0Index].scale
+		return mgl32.Scale3D(finalScale.Elem())
+	}
+
 	p1Index := p0Index + 1
 	scaleFactor := b.getScaleFactor(b.scales[p0Index].timeStamp, b.scales[p1Index].timeStamp, animationTime)
 

@@ -367,7 +367,7 @@ func TestBoneUpdateTimeAfterLastKeyframe(t *testing.T) {
 	scaling := mgl32.Scale3D(4, 4, 4)
 	want := translation.Mul4(rotation.Mul4(scaling))
 
-	if bone.localTransform.ApproxEqual(want) {
+	if !bone.localTransform.ApproxEqual(want) {
 		t.Errorf("bone.Update().localTransform, got: %v, want: %v", bone.localTransform, want)
 	}
 }
