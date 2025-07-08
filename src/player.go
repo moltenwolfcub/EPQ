@@ -14,8 +14,9 @@ type Player struct {
 
 	pos mgl32.Vec3
 
-	model    *model.Model
-	animator *model.Animator
+	model      *model.Model
+	animations map[string]*model.Animation
+	animator   *model.Animator
 
 	shader shader.Shader
 }
@@ -28,8 +29,8 @@ func NewPlayer(state *WorldState, generalShader shader.Shader) *Player {
 
 	p.model = model.NewModel("player.glb", true)
 
-	animation := model.NewAnimation(p.model)
-	p.animator = model.NewAnimator(animation)
+	p.animations = model.LoadAllAnimations(p.model)
+	p.animator = model.NewAnimator(p.animations["idle"])
 
 	return &p
 }

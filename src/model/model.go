@@ -581,6 +581,40 @@ type Animation struct {
 	boneInfoMap    map[string]BoneInfo
 }
 
+func LoadAllAnimations(model *Model) map[string]*Animation {
+	if model.scene == nil {
+		panic("Model didn't preserve scene, can't load animation")
+	}
+	defer func() {
+		C.aiReleaseImport(model.scene)
+		model.scene = nil
+	}()
+
+	if model.scene == nil || (model.scene.mFlags&C.AI_SCENE_FLAGS_INCOMPLETE) != 0 || model.scene.mRootNode == nil {
+		fmt.Println("ERROR::ASSIMP::" + C.GoString(C.aiGetErrorString()))
+		return nil
+	}
+
+	sceneAnimations := unsafe.Slice(model.scene.mAnimations, model.scene.mNumAnimations)
+
+	loadedAnimations := make(map[string]*Animation, model.scene.mNumAnimations)
+	for _, anim := range sceneAnimations {
+		a := Animation{
+			bones:       make(map[string]*Bone),
+			boneInfoMap: make(map[string]BoneInfo),
+		}
+
+		a.name = C.GoString(&anim.mName.data[0])
+		a.duration = float32(anim.mDuration)
+		a.ticksPerSecond = int(anim.mTicksPerSecond)
+		a.rootNode = a.readHeirarchyData(model.scene.mRootNode)
+		a.readMissingBones(anim, model)
+
+		loadedAnimations[a.name] = &a
+	}
+	return loadedAnimations
+}
+
 func NewAnimation(model *Model) *Animation {
 	if model.scene == nil {
 		panic("Model didn't preserve scene, can't load animation")
@@ -609,7 +643,7 @@ func NewAnimation(model *Model) *Animation {
 	a.rootNode = a.readHeirarchyData(model.scene.mRootNode)
 	a.readMissingBones(animation, model)
 
-	fmt.Println("Animation name: ", a.name)
+	// fmt.Println("Animation name: ", a.name)
 
 	return &a
 }
