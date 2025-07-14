@@ -30,7 +30,7 @@ func NewPlayer(state *WorldState, generalShader shader.Shader) *Player {
 	p.model = model.NewModel("player.glb", true)
 
 	p.animations = model.LoadAllAnimations(p.model)
-	p.animator = model.NewAnimator(p.animations["idle"])
+	p.animator = model.NewAnimator(p.animations["run"])
 
 	return &p
 }
