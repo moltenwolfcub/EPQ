@@ -14,9 +14,10 @@ type Player struct {
 
 	pos mgl32.Vec3
 
-	model      *model.Model
-	animations map[string]*model.Animation
-	animator   *model.Animator
+	model            *model.Model
+	animations       map[string]*model.Animation
+	animator         *model.Animator
+	currentAnimation string
 
 	shader shader.Shader
 }
@@ -30,7 +31,7 @@ func NewPlayer(state *WorldState, generalShader shader.Shader) *Player {
 	p.model = model.NewModel("player.glb", true)
 
 	p.animations = model.LoadAllAnimations(p.model)
-	p.animator = model.NewAnimator(p.animations["run"])
+	p.animator = model.NewAnimator(p.animations["idle"])
 
 	return &p
 }
@@ -47,6 +48,22 @@ func (p *Player) Update(deltaTime float32) {
 		panic("Player animator wasn't set. Nil Pointer")
 	}
 	p.animator.UpdateAnimation(deltaTime)
+}
+
+func (p *Player) Move(velocity mgl32.Vec3) {
+	p.pos = p.pos.Add(velocity)
+
+	if velocity.Len() == 0 {
+		if p.currentAnimation != "idle" {
+			p.animator.PlayAnimation(p.animations["idle"])
+			p.currentAnimation = "idle"
+		}
+	} else {
+		if p.currentAnimation != "run" {
+			p.animator.PlayAnimation(p.animations["run"])
+			p.currentAnimation = "run"
+		}
+	}
 }
 
 func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {

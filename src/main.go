@@ -136,7 +136,8 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(settings.MOVEMENT_SPEED))
+			// g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(settings.MOVEMENT_SPEED))
+			g.state.Player.Move(translationVec.Mul(settings.MOVEMENT_SPEED))
 			g.alignCamera()
 		}
 
