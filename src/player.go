@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
@@ -12,7 +13,8 @@ import (
 type Player struct {
 	state *WorldState
 
-	pos mgl32.Vec3
+	pos      mgl32.Vec3
+	rotation mgl32.Quat
 
 	model            *model.Model
 	animations       map[string]*model.Animation
@@ -59,11 +61,42 @@ func (p *Player) Move(velocity mgl32.Vec3) {
 			p.currentAnimation = "idle"
 		}
 	} else {
+
+		forwards := mgl32.Vec2{0, 1}
+		lookingDir := mgl32.Vec2{-velocity.X(), velocity.Z()}
+		if lookingDir.Len() != 0 { //to catch only vertical movement
+			theta := angleBetween(forwards, lookingDir)
+
+			p.rotation = mgl32.QuatRotate(theta, mgl32.Vec3{0, 1, 0})
+		}
+
 		if p.currentAnimation != "run" {
 			p.animator.PlayAnimation(p.animations["run"])
 			p.currentAnimation = "run"
 		}
 	}
+}
+
+func angleBetween(a, b mgl32.Vec2) float32 {
+	normal := mgl32.Vec3{0, 0, 1}
+
+	a3 := a.Vec3(0)
+	b3 := b.Vec3(0)
+
+	cross := a3.Cross(b3)
+	dot := a3.Dot(b3)
+
+	normalCross := cross.Dot(normal)
+
+	theta := float32(math.Atan2(float64(normalCross), float64(dot)))
+
+	return theta
+
+	// x := 1 / (a.Len() * b.Len())
+
+	// sintheta := a3.Cross(b3).Mul(x).Len()
+
+	// return float32(math.Asin(float64(sintheta)))
 }
 
 func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
@@ -72,8 +105,11 @@ func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 
 	p.shader.SetMatrix4("proj", proj)
 	p.shader.SetMatrix4("view", view)
-	p.shader.SetMatrix4("model", mgl32.Translate3D(p.pos.Elem()))
-	p.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos))
+
+	model := mgl32.Translate3D(p.pos.Elem()).Mul4(p.rotation.Normalize().Mat4())
+	p.shader.SetMatrix4("model", model)
+
+	p.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos)) //TODO remove this sub
 
 	if p.state.lightingSSBO != 0 {
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 2, p.state.lightingSSBO)
