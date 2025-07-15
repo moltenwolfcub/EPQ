@@ -91,12 +91,6 @@ func angleBetween(a, b mgl32.Vec2) float32 {
 	theta := float32(math.Atan2(float64(normalCross), float64(dot)))
 
 	return theta
-
-	// x := 1 / (a.Len() * b.Len())
-
-	// sintheta := a3.Cross(b3).Mul(x).Len()
-
-	// return float32(math.Asin(float64(sintheta)))
 }
 
 func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
@@ -109,7 +103,7 @@ func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	model := mgl32.Translate3D(p.pos.Elem()).Mul4(p.rotation.Normalize().Mat4())
 	p.shader.SetMatrix4("model", model)
 
-	p.shader.SetVec3("camera", mgl32.Vec3{}.Sub(camPos)) //TODO remove this sub
+	p.shader.SetVec3("camera", camPos)
 
 	if p.state.lightingSSBO != 0 {
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 2, p.state.lightingSSBO)
