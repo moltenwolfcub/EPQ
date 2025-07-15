@@ -7,12 +7,15 @@ const int SPOT = 2;
 struct Material {
 	vec3 diffuse;
 	vec3 specular;
+	vec3 emissive;
 	float shininess;
 
 	sampler2D texture_diffuse1;
 	bool hasTexDiffuse;
 	sampler2D texture_specular1;
 	bool hasTexSpecular;
+	sampler2D texture_emissive1;
+	bool hasTexEmissive;
 	sampler2D texture_roughness1;
 	bool hasTexRoughness;
 };
@@ -126,6 +129,12 @@ void main() {
 		specularColor = pow(specularColor, vec3(gamma));
 	}
 
+	vec3 emissiveColor = material.emissive;
+	if(material.hasTexEmissive) {
+		emissiveColor = texture(material.texture_emissive1, texCoord).rgb;
+		emissiveColor = pow(emissiveColor, vec3(gamma));
+	}
+
 	float shine = material.shininess;
 	if(material.hasTexRoughness) {
 		float roughness = texture(material.texture_roughness1, texCoord).r;
@@ -150,6 +159,8 @@ void main() {
 			continue;
 		}
 	}
+
+	result += emissiveColor;
 
 	FragColor = vec4(result, 1.0);
 

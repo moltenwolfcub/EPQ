@@ -71,6 +71,40 @@ func TestSpecular(t *testing.T) {
 	}
 }
 
+func TestEmissive(t *testing.T) {
+	var tests = []struct {
+		model string
+
+		want mgl32.Vec3
+	}{
+		{
+			"noEmission.obj",
+			mgl32.Vec3{0, 0, 0},
+		},
+		{
+			"dimRedEmission.obj",
+			mgl32.Vec3{0.1, 0, 0},
+		},
+		{
+			"brightGreenEmission.obj",
+			mgl32.Vec3{0, 2, 0},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.model, func(t *testing.T) {
+			m := model.NewModel("testdata/"+testCase.model, false)
+			mesh := m.Meshes[0]
+
+			got := mesh.Material.Emissive
+
+			if got != testCase.want {
+				t.Errorf("Material.Emissive, got: %v, expected: %v", got, testCase.want)
+			}
+		})
+	}
+}
+
 func TestShininess(t *testing.T) {
 	var tests = []struct {
 		model string

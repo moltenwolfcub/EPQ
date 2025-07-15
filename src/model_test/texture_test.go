@@ -10,8 +10,8 @@ func TestTextures(t *testing.T) {
 	m := model.NewModel("testdata/textureTest.obj", false)
 	mesh := m.Meshes[0]
 
-	if len(mesh.Textures) != 3 {
-		t.Errorf("len(mesh.Textures), got: %v, want: %v", len(mesh.Textures), 3)
+	if len(mesh.Textures) != 4 {
+		t.Errorf("len(mesh.Textures), got: %v, want: %v", len(mesh.Textures), 4)
 	}
 
 	for _, texture := range mesh.Textures {
@@ -28,6 +28,12 @@ func TestTextures(t *testing.T) {
 			if got != want {
 				t.Errorf("mesh.Texture.path, got: %v, want: %v", got, want)
 			}
+		case "texture_emissive":
+			got := texture.Path
+			want := "Emission.png"
+			if got != want {
+				t.Errorf("mesh.Texture.path, got: %v, want: %v", got, want)
+			}
 		case "texture_roughness":
 			got := texture.Path
 			want := "Roughness.png"
@@ -35,7 +41,7 @@ func TestTextures(t *testing.T) {
 				t.Errorf("mesh.Texture.path, got: %v, want: %v", got, want)
 			}
 		default:
-			t.Errorf("mesh.Texture.TextureType, got: %v, want: texture_diffuse, texture_specular or texture_roughness", texture.TextureType)
+			t.Errorf("mesh.Texture.TextureType, got: %v, want: texture_diffuse, texture_specular, texture_emissive or texture_roughness", texture.TextureType)
 		}
 	}
 }

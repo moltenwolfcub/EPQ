@@ -100,8 +100,13 @@ func (s *WorldState) BindLights() {
 		internalLights = append(internalLights, il)
 	}
 
+	lightsPtr := gl.Ptr(new(int)) //dummy pointer if length is 0 because C needs an address even if it's unused
+	if len(internalLights) != 0 {
+		lightsPtr = gl.Ptr(internalLights)
+	}
+
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, s.lightingSSBO)
-	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(internalLights)*int(unsafe.Sizeof(internalLight{})), gl.Ptr(internalLights), gl.STATIC_DRAW)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, len(internalLights)*int(unsafe.Sizeof(internalLight{})), lightsPtr, gl.STATIC_DRAW)
 }
 
 func (w WorldState) ToRender() []render.Renderable {

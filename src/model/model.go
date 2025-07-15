@@ -265,6 +265,9 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mes
 	specularMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_SPECULAR, "texture_specular")
 	textures = append(textures, specularMaps...)
 
+	emissiveMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_EMISSIVE, "texture_emissive")
+	textures = append(textures, emissiveMaps...)
+
 	roughnessMaps := m.loadMaterialTextures(modelMaterial, C.aiTextureType_SHININESS, "texture_roughness")
 	textures = append(textures, roughnessMaps...)
 
@@ -272,6 +275,7 @@ func (m *Model) processMesh(mesh *C.struct_aiMesh, scene *C.struct_aiScene) *Mes
 	material := Material{
 		Diffuse:   getMaterialColorOrDefault(modelMaterial, "$clr.diffuse", mgl32.Vec3{-1, -1, -1}),
 		Specular:  getMaterialColorOrDefault(modelMaterial, "$clr.specular", mgl32.Vec3{-1, -1, -1}),
+		Emissive:  getMaterialColorOrDefault(modelMaterial, "$clr.emissive", mgl32.Vec3{-1, -1, -1}),
 		Shininess: getMaterialFloatOrDefault(modelMaterial, "$mat.shininess", -1),
 	}
 
@@ -366,6 +370,7 @@ type Texture struct {
 type Material struct {
 	Diffuse   mgl32.Vec3
 	Specular  mgl32.Vec3
+	Emissive  mgl32.Vec3
 	Shininess float32
 }
 
@@ -398,6 +403,7 @@ func NewMesh(verts []Vertex, indices []uint32, textures []Texture, material Mate
 func (m Mesh) Draw(shader shader.Shader) {
 	diffuseNr := 1
 	specularNr := 1
+	emissiveNr := 1
 	roughnessNr := 1
 
 	for i, tex := range m.Textures {
@@ -411,6 +417,9 @@ func (m Mesh) Draw(shader shader.Shader) {
 		case "texture_specular":
 			number = fmt.Sprintf("%d", specularNr)
 			specularNr++
+		case "texture_emissive":
+			number = fmt.Sprintf("%d", emissiveNr)
+			emissiveNr++
 		case "texture_roughness":
 			number = fmt.Sprintf("%d", roughnessNr)
 			roughnessNr++
@@ -423,10 +432,12 @@ func (m Mesh) Draw(shader shader.Shader) {
 
 	shader.SetBool("material.hasTexDiffuse", diffuseNr > 1)
 	shader.SetBool("material.hasTexSpecular", specularNr > 1)
+	shader.SetBool("material.hasTexEmissive", emissiveNr > 1)
 	shader.SetBool("material.hasTexRoughness", roughnessNr > 1)
 
 	shader.SetVec3("material.diffuse", m.Material.Diffuse)
 	shader.SetVec3("material.specular", m.Material.Specular)
+	shader.SetVec3("material.emissive", m.Material.Emissive)
 	shader.SetFloat("material.shininess", m.Material.Shininess)
 
 	gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, m.boneIdSSBO)
