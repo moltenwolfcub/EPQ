@@ -92,6 +92,7 @@ func NewGame() *Game {
 		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
 		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
 		NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
+		NewWorldObject(g.state, "axis.obj", false, generalShader, mgl32.Vec3{0, -5, 0}),
 	)
 	g.state.Player = NewPlayer(g.state, generalShader)
 	g.state.FinaliseLoad()
@@ -136,7 +137,6 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			// g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(settings.MOVEMENT_SPEED))
 			g.state.Player.Move(translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime))
 			g.alignCamera()
 		}
