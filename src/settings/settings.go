@@ -5,7 +5,7 @@ const (
 
 	ORTHO_SCALE float32 = 20 / 2 // divide by 2 because then it maps to blender's orthographic scale
 
-	MOVEMENT_SPEED float32 = 0.1
+	MOVEMENT_SPEED float32 = 3.271165 // the distance a foot moves per second in the animation
 
 	DEBUG_PERSPECTIVE bool = true
 )

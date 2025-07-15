@@ -128,7 +128,7 @@ func (g *Game) runGame() {
 			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
 		}
 		if g.detachedCamera {
-			deltaPos := translationVec.Mul(settings.MOVEMENT_SPEED)
+			deltaPos := translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
 			deltaPos = mgl32.Vec3{
 				-deltaPos.X(),
 				deltaPos.Y(),
@@ -137,7 +137,7 @@ func (g *Game) runGame() {
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
 			// g.state.Player.pos = g.state.Player.pos.Add(translationVec.Mul(settings.MOVEMENT_SPEED))
-			g.state.Player.Move(translationVec.Mul(settings.MOVEMENT_SPEED))
+			g.state.Player.Move(translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime))
 			g.alignCamera()
 		}
 
