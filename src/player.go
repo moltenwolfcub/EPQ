@@ -13,8 +13,10 @@ import (
 type Player struct {
 	state *WorldState
 
-	pos      mgl32.Vec3
+	position mgl32.Vec3
 	rotation mgl32.Quat
+
+	velocity mgl32.Vec3
 
 	model            *model.Model
 	animations       map[string]*model.Animation
@@ -46,35 +48,38 @@ func (p *Player) finaliseLoad() {
 }
 
 func (p *Player) Update(deltaTime float32) {
+	p.position = p.position.Add(p.velocity)
+
+	if p.velocity.Len() != 0 {
+		lookingDir := mgl32.Vec2{-p.velocity.X(), p.velocity.Z()}
+		if lookingDir.Len() != 0 { //to catch only vertical movement
+			theta := angleBetween(mgl32.Vec2{0, 1}, lookingDir)
+
+			p.rotation = mgl32.QuatRotate(theta, mgl32.Vec3{0, 1, 0})
+		}
+	}
+
+	p.updateAnimations(deltaTime)
+}
+
+func (p *Player) updateAnimations(deltaTime float32) {
 	if p.animator == nil {
 		panic("Player animator wasn't set. Nil Pointer")
 	}
-	p.animator.UpdateAnimation(deltaTime)
-}
 
-func (p *Player) Move(velocity mgl32.Vec3) {
-	p.pos = p.pos.Add(velocity)
-
-	if velocity.Len() == 0 {
+	if p.velocity.Len() == 0 {
 		if p.currentAnimation != "idle" {
 			p.animator.PlayAnimation(p.animations["idle"])
 			p.currentAnimation = "idle"
 		}
 	} else {
-
-		forwards := mgl32.Vec2{0, 1}
-		lookingDir := mgl32.Vec2{-velocity.X(), velocity.Z()}
-		if lookingDir.Len() != 0 { //to catch only vertical movement
-			theta := angleBetween(forwards, lookingDir)
-
-			p.rotation = mgl32.QuatRotate(theta, mgl32.Vec3{0, 1, 0})
-		}
-
 		if p.currentAnimation != "run" {
 			p.animator.PlayAnimation(p.animations["run"])
 			p.currentAnimation = "run"
 		}
 	}
+
+	p.animator.UpdateAnimation(deltaTime)
 }
 
 func angleBetween(a, b mgl32.Vec2) float32 {
@@ -100,7 +105,7 @@ func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	p.shader.SetMatrix4("proj", proj)
 	p.shader.SetMatrix4("view", view)
 
-	model := mgl32.Translate3D(p.pos.Elem()).Mul4(p.rotation.Normalize().Mat4())
+	model := mgl32.Translate3D(p.position.Elem()).Mul4(p.rotation.Normalize().Mat4())
 	p.shader.SetMatrix4("model", model)
 
 	p.shader.SetVec3("camera", camPos)

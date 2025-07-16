@@ -137,7 +137,7 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			g.state.Player.Move(translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime))
+			g.state.Player.velocity = translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
 			g.alignCamera()
 		}
 
@@ -146,7 +146,7 @@ func (g *Game) runGame() {
 }
 
 func (g *Game) alignCamera() {
-	g.camPos = g.state.Player.pos.Add(mgl32.Vec3{10, 10, 10})
+	g.camPos = g.state.Player.position.Add(mgl32.Vec3{10, 10, 10})
 }
 
 func (g *Game) handleEvents() int {
