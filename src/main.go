@@ -13,6 +13,7 @@ import (
 	"github.com/moltenwolfcub/EPQ/src/render"
 	"github.com/moltenwolfcub/EPQ/src/settings"
 	"github.com/moltenwolfcub/EPQ/src/shader"
+	"github.com/moltenwolfcub/EPQ/src/state"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -21,7 +22,7 @@ type Game struct {
 
 	keyboardState []uint8
 
-	state *WorldState
+	state *state.WorldState
 
 	camPos         mgl32.Vec3
 	detachedCamera bool
@@ -33,16 +34,15 @@ func NewGame() *Game {
 	g.renderer = render.NewRenderer()
 	g.keyboardState = sdl.GetKeyboardState()
 
-	normalShader = shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom)
 	orangeShader := shader.NewEmbeddedShaderVF(assets.OrangeVert, assets.OrangeFrag)
 	blueShader := shader.NewEmbeddedShaderVF(assets.BlueVert, assets.BlueFrag)
 	generalShader := shader.NewEmbeddedShaderVF(assets.GeneralVert, assets.GeneralFrag)
 
 	cube := model.NewCubeModel(0.5)
 
-	g.state = NewWorldState()
+	g.state = state.NewWorldState()
 
-	g.state.Lights = []Light{
+	g.state.Lights = []state.Light{
 		// PointLight{
 		// 	Pos:                  mgl32.Vec3{0, 0, 0},
 		// 	Ambient:              mgl32.Vec3{1, 1, 1},
@@ -52,7 +52,7 @@ func NewGame() *Game {
 		// 	LinearAttenuation:    0,
 		// 	QuadraticAttenuation: 0,
 		// },
-		PointLight{
+		state.PointLight{
 			Pos:                  mgl32.Vec3{-2, 5, -2},
 			Ambient:              mgl32.Vec3{0, 0, 0},
 			Diffuse:              mgl32.Vec3{0.3, 0.5, 1},
@@ -61,7 +61,7 @@ func NewGame() *Game {
 			LinearAttenuation:    0.0075,
 			QuadraticAttenuation: 0.07,
 		},
-		PointLight{
+		state.PointLight{
 			Pos:                  mgl32.Vec3{0, 1, 3},
 			Ambient:              mgl32.Vec3{0.1, 0.05, 0},
 			Diffuse:              mgl32.Vec3{0.5, 0.25, 0.1},
@@ -70,7 +70,7 @@ func NewGame() *Game {
 			LinearAttenuation:    0.14,
 			QuadraticAttenuation: 0.07,
 		},
-		SpotLight{
+		state.SpotLight{
 			Pos:                  mgl32.Vec3{6, 6, 0},
 			Dir:                  mgl32.Vec3{-1, -1, 0},
 			Ambient:              mgl32.Vec3{0, 0, 0},
@@ -79,22 +79,22 @@ func NewGame() *Game {
 			ConstantAttenuation:  1.0,
 			LinearAttenuation:    0.09,
 			QuadraticAttenuation: 0.032,
-			cutoff:               12.5,
-			outerCutoff:          15,
+			Cutoff:               12.5,
+			OuterCutoff:          15,
 		},
 	}
 	g.state.BindLights()
 
 	g.state.Objects = append(g.state.Objects,
-		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
-		NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
-		NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
-		NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
-		NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
-		NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
-		NewWorldObject(g.state, "axis.obj", false, generalShader, mgl32.Vec3{0, -5, 0}),
+		state.NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
+		state.NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
+		state.NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
+		state.NewWorldObject(g.state, "firePit.obj", false, generalShader, mgl32.Vec3{0, 0, 0}),
+		state.NewWorldObject(g.state, "terrain.obj", false, generalShader, mgl32.Vec3{0, -1, 0}),
+		state.NewWorldObject(g.state, "multiAnimation.glb", true, generalShader, mgl32.Vec3{0, 1, 0}),
+		state.NewWorldObject(g.state, "axis.obj", false, generalShader, mgl32.Vec3{0, -5, 0}),
 	)
-	g.state.Player = NewPlayer(g.state, generalShader)
+	g.state.Player = state.NewPlayer(g.state, generalShader)
 	g.state.FinaliseLoad()
 
 	g.detachedCamera = false
@@ -137,7 +137,8 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			g.state.Player.velocity = translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
+			// temporarily disabled movement
+			// g.state.Player.velocity = translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
 			g.alignCamera()
 		}
 
@@ -146,7 +147,7 @@ func (g *Game) runGame() {
 }
 
 func (g *Game) alignCamera() {
-	g.camPos = g.state.Player.position.Add(mgl32.Vec3{10, 10, 10})
+	g.camPos = g.state.Player.GetPosition().Add(mgl32.Vec3{10, 10, 10})
 }
 
 func (g *Game) handleEvents() int {

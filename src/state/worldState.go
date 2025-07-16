@@ -1,4 +1,4 @@
-package main
+package state
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/moltenwolfcub/EPQ/src/assets"
 	"github.com/moltenwolfcub/EPQ/src/model"
 	"github.com/moltenwolfcub/EPQ/src/render"
 	"github.com/moltenwolfcub/EPQ/src/shader"
@@ -92,8 +93,8 @@ func (s *WorldState) BindLights() {
 				constant:    l.ConstantAttenuation,
 				linear:      l.LinearAttenuation,
 				quadratic:   l.QuadraticAttenuation,
-				cutoff:      float32(math.Cos(float64(mgl32.DegToRad(l.cutoff)))),
-				outerCutoff: float32(math.Cos(float64(mgl32.DegToRad(l.outerCutoff)))),
+				cutoff:      float32(math.Cos(float64(mgl32.DegToRad(l.Cutoff)))),
+				outerCutoff: float32(math.Cos(float64(mgl32.DegToRad(l.OuterCutoff)))),
 			}
 		}
 
@@ -200,10 +201,14 @@ func (o WorldObject) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.model.Draw(o.shader)
 }
 
-var normalShader shader.Shader //initialised in main
+var normalShader shader.Shader
 
 func (o WorldObject) DrawWithNormals(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 	o.Draw(proj, view, camPos)
+
+	if normalShader == nil {
+		normalShader = shader.NewEmbeddedShaderVFG(assets.NormViewVert, assets.NormViewFrag, assets.NormViewGeom)
+	}
 
 	normalShader.Use()
 	normalShader.SetMatrix4("proj", proj)
@@ -256,8 +261,8 @@ type SpotLight struct {
 	LinearAttenuation    float32
 	QuadraticAttenuation float32
 
-	cutoff      float32
-	outerCutoff float32
+	Cutoff      float32
+	OuterCutoff float32
 }
 
 func (s SpotLight) GetLightComponents() (mgl32.Vec3, mgl32.Vec3, mgl32.Vec3) {

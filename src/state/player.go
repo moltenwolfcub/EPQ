@@ -1,4 +1,4 @@
-package main
+package state
 
 import (
 	"fmt"
@@ -122,4 +122,8 @@ func (p Player) Draw(proj mgl32.Mat4, view mgl32.Mat4, camPos mgl32.Vec3) {
 		p.shader.SetMatrix4(fmt.Sprintf("finalBonesMatrices[%d]", i), mat)
 	}
 	p.model.Draw(p.shader)
+}
+
+func (p Player) GetPosition() mgl32.Vec3 {
+	return p.position
 }
