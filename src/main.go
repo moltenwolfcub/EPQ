@@ -118,7 +118,7 @@ func (g *Game) runGame() {
 			return
 		}
 
-		playerAcceleration := mgl32.Vec3{}
+		playerAcceleration := []mgl32.Vec3{}
 		translationVec := mgl32.Vec3{
 			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),
 			float32(g.keyboardState[sdl.SCANCODE_SPACE]) - float32(g.keyboardState[sdl.SCANCODE_LSHIFT]),
@@ -135,7 +135,12 @@ func (g *Game) runGame() {
 		} else {
 			g.alignCamera()
 
-			playerAcceleration = translationVec.Mul(settings.PLAYER_ACCELLERATION)
+			playerAcceleration = append(playerAcceleration, translationVec.Mul(settings.PLAYER_ACCELLERATION))
+		}
+
+		if !g.state.Player.Flying {
+			gravity := mgl32.Vec3{0, -settings.GRAVITY, 0}
+			playerAcceleration = append(playerAcceleration, gravity)
 		}
 
 		g.state.Player.Update(deltaTime, playerAcceleration)
@@ -165,6 +170,8 @@ func (g *Game) handleEvents() int {
 				switch event.Keysym.Sym {
 				case sdl.K_TAB:
 					g.detachedCamera = !g.detachedCamera
+				case sdl.K_f:
+					g.state.Player.Flying = !g.state.Player.Flying
 				}
 			}
 		}

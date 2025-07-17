@@ -19,6 +19,8 @@ type Player struct {
 
 	velocity mgl32.Vec3
 
+	Flying bool
+
 	model            *model.Model
 	animations       map[string]*model.Animation
 	animator         *model.Animator
@@ -31,6 +33,8 @@ func NewPlayer(state *WorldState, generalShader shader.Shader) *Player {
 	p := Player{
 		state:  state,
 		shader: generalShader,
+
+		Flying: true,
 	}
 
 	p.model = model.NewModel("player.glb", true)
@@ -49,8 +53,11 @@ func (p *Player) finaliseLoad() {
 }
 
 // maybe swap accelleration to forces[] eventually (include mass for realism)
-func (p *Player) Update(deltaTime float32, acceleration mgl32.Vec3) {
-	p.velocity = p.velocity.Add(acceleration)
+func (p *Player) Update(deltaTime float32, accelerations []mgl32.Vec3) {
+	for _, a := range accelerations {
+		p.velocity = p.velocity.Add(a)
+	}
+	// p.velocity = p.velocity.Add(acceleration)
 	p.velocity = p.velocity.Mul(settings.GLOBAL_DRAG_COEFFICIENT)
 
 	if p.velocity.Len() <= 0.25 { //threshold to stop unnoticable movement
