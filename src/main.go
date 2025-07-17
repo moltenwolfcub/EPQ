@@ -118,18 +118,14 @@ func (g *Game) runGame() {
 			return
 		}
 
-		g.state.Player.Update(deltaTime)
-		for _, object := range g.state.Objects {
-			object.Update(deltaTime)
-		}
-
+		playerAcceleration := mgl32.Vec3{}
 		translationVec := mgl32.Vec3{
 			float32(g.keyboardState[sdl.SCANCODE_A]) - float32(g.keyboardState[sdl.SCANCODE_D]),
 			float32(g.keyboardState[sdl.SCANCODE_SPACE]) - float32(g.keyboardState[sdl.SCANCODE_LSHIFT]),
 			float32(g.keyboardState[sdl.SCANCODE_W]) - float32(g.keyboardState[sdl.SCANCODE_S]),
 		}
 		if g.detachedCamera {
-			deltaPos := translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
+			deltaPos := translationVec.Mul(settings.PLAYER_ACCELLERATION * deltaTime)
 			deltaPos = mgl32.Vec3{
 				-deltaPos.X(),
 				deltaPos.Y(),
@@ -137,9 +133,14 @@ func (g *Game) runGame() {
 			}
 			g.camPos = g.camPos.Add(deltaPos)
 		} else {
-			// temporarily disabled movement
-			// g.state.Player.velocity = translationVec.Mul(settings.MOVEMENT_SPEED * deltaTime)
 			g.alignCamera()
+
+			playerAcceleration = translationVec.Mul(settings.PLAYER_ACCELLERATION)
+		}
+
+		g.state.Player.Update(deltaTime, playerAcceleration)
+		for _, object := range g.state.Objects {
+			object.Update(deltaTime)
 		}
 
 		g.renderer.Draw(g.camPos, g.state.ToRender())

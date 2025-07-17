@@ -7,6 +7,7 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/moltenwolfcub/EPQ/src/model"
+	"github.com/moltenwolfcub/EPQ/src/settings"
 	"github.com/moltenwolfcub/EPQ/src/shader"
 )
 
@@ -47,8 +48,17 @@ func (p *Player) finaliseLoad() {
 	}
 }
 
-func (p *Player) Update(deltaTime float32) {
-	p.position = p.position.Add(p.velocity)
+// maybe swap accelleration to forces[] eventually (include mass for realism)
+func (p *Player) Update(deltaTime float32, acceleration mgl32.Vec3) {
+	p.velocity = p.velocity.Add(acceleration)
+	p.velocity = p.velocity.Mul(settings.GLOBAL_DRAG_COEFFICIENT)
+
+	if p.velocity.Len() <= 0.25 { //threshold to stop unnoticable movement
+		p.velocity = mgl32.Vec3{0, 0, 0}
+	}
+
+	p.position = p.position.Add(p.velocity.Mul(deltaTime))
+	// fmt.Println(p.position, p.velocity)
 
 	if p.velocity.Len() != 0 {
 		lookingDir := mgl32.Vec2{-p.velocity.X(), p.velocity.Z()}
