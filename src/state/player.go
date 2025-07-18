@@ -87,35 +87,29 @@ func (p *Player) updateAnimations(deltaTime float32) {
 	}
 
 	if p.velocity.Len() == 0 {
-		if p.currentAnimation != "idle" {
-			p.animator.PlayAnimation(p.animations["idle"])
-			p.currentAnimation = "idle"
-		}
+		p.setAnimationTo("idle")
 	} else {
 		horizontal := mgl32.Vec2{p.velocity.X(), p.velocity.Z()}
 
 		if horizontal.Len() > 0 {
-			if p.currentAnimation != "run" {
-				p.animator.PlayAnimation(p.animations["run"])
-				p.currentAnimation = "run"
-			}
+			p.setAnimationTo("run")
 		} else if p.velocity.Y() > 0 {
 			// TODO: actually create fly animation
-			if p.currentAnimation != "fly" {
-				p.animator.PlayAnimation(p.animations["fly"])
-				p.currentAnimation = "fly"
-			}
+			p.setAnimationTo("fly")
 		} else {
 			// TODO: actually create fall animation
-			if p.currentAnimation != "fall" {
-				p.animator.PlayAnimation(p.animations["fall"])
-				p.currentAnimation = "fall"
-			}
-
+			p.setAnimationTo("fall")
 		}
 	}
 
 	p.animator.UpdateAnimation(deltaTime)
+}
+
+func (p *Player) setAnimationTo(name string) {
+	if p.currentAnimation != name {
+		p.animator.PlayAnimation(p.animations[name])
+		p.currentAnimation = name
+	}
 }
 
 func angleBetween(a, b mgl32.Vec2) float32 {
