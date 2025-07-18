@@ -57,11 +57,13 @@ func (p *Player) Update(deltaTime float32, accelerations []mgl32.Vec3) {
 	for _, a := range accelerations {
 		p.velocity = p.velocity.Add(a)
 	}
-	// p.velocity = p.velocity.Add(acceleration)
 	p.velocity = p.velocity.Mul(settings.GLOBAL_DRAG_COEFFICIENT)
 
-	if p.velocity.Len() <= 0.25 { //threshold to stop unnoticable movement
-		p.velocity = mgl32.Vec3{0, 0, 0}
+	//threshold to stop unnoticable movement
+	for i, axis := range p.velocity {
+		if mgl32.Abs(axis) <= 0.25 {
+			p.velocity[i] = 0
+		}
 	}
 
 	p.position = p.position.Add(p.velocity.Mul(deltaTime))
@@ -90,9 +92,26 @@ func (p *Player) updateAnimations(deltaTime float32) {
 			p.currentAnimation = "idle"
 		}
 	} else {
-		if p.currentAnimation != "run" {
-			p.animator.PlayAnimation(p.animations["run"])
-			p.currentAnimation = "run"
+		horizontal := mgl32.Vec2{p.velocity.X(), p.velocity.Z()}
+
+		if horizontal.Len() > 0 {
+			if p.currentAnimation != "run" {
+				p.animator.PlayAnimation(p.animations["run"])
+				p.currentAnimation = "run"
+			}
+		} else if p.velocity.Y() > 0 {
+			// TODO: actually create fly animation
+			if p.currentAnimation != "fly" {
+				p.animator.PlayAnimation(p.animations["fly"])
+				p.currentAnimation = "fly"
+			}
+		} else {
+			// TODO: actually create fall animation
+			if p.currentAnimation != "fall" {
+				p.animator.PlayAnimation(p.animations["fall"])
+				p.currentAnimation = "fall"
+			}
+
 		}
 	}
 
