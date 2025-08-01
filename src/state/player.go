@@ -94,10 +94,8 @@ func (p *Player) updateAnimations(deltaTime float32) {
 		if horizontal.Len() > 0 {
 			p.setAnimationTo("run")
 		} else if p.velocity.Y() > 0 {
-			// TODO: actually create fly animation
 			p.setAnimationTo("fly")
 		} else {
-			// TODO: actually create fall animation
 			p.setAnimationTo("fall")
 		}
 	}
