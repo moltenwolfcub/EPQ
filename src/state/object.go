@@ -56,6 +56,9 @@ func (o *WorldObject) finaliseLoad() {
 }
 
 func (o *WorldObject) Update(deltaTime float32) {
+	if o.state.Objects[0] == o {
+		o.modelMat = mgl32.Translate3D(o.state.Player.position.Elem()) //TODO: remove player position debugging
+	}
 	if o.hasAnimation {
 		if o.animator == nil {
 			panic("Animator wasn't set but object has animation. Nil Pointer")

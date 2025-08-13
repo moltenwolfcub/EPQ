@@ -86,6 +86,7 @@ func NewGame() *Game {
 	g.state.BindLights()
 
 	g.state.Objects = append(g.state.Objects,
+		state.NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 0, 0}), //player position debug
 		state.NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{-2, 5, -2}),
 		state.NewWorldObjectFromModel(g.state, cube, orangeShader, mgl32.Vec3{0, 1, 3}),
 		state.NewWorldObjectFromModel(g.state, cube, blueShader, mgl32.Vec3{6, 6, 0}),
